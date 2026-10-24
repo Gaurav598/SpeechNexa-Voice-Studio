@@ -355,11 +355,12 @@ def test_generic_ai_credit_only_when_it_names_no_person(text, flagged):
     assert bool(module.classify_text(text)) is flagged
 
 
-def test_remedy_rewrites_only_the_listed_commits():
+def test_identity_check_does_not_rewrite_commits_and_current_guide_is_owner_scoped():
     text = SCRIPT.read_text(encoding="utf-8")
     assert "git rebase --exec 'git commit --amend --no-edit --reset-author'" not in text
     contributing = (ROOT / ".github" / "CONTRIBUTING.md").read_text(encoding="utf-8")
-    assert "mark each listed commit `edit`" in contributing
+    assert "personal, owner-maintained" in contributing
+    assert "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/issues" in contributing
 
 
 @pytest.mark.parametrize("name", ["Devin[bot]", "Gemini[bot]", "Jules[bot]"])

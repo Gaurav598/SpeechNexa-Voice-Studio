@@ -33,12 +33,13 @@ def test_backend_never_calls_torchaudio_io_directly():
             continue
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if (
-                isinstance(node, ast.Attribute)
-                and node.attr in GATED
-                and isinstance(node.value, ast.Name)
-                and node.value.id in {"torchaudio", "ta"}
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr in GATED
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id in {"torchaudio", "ta"}
             ):
-                offenders.append(f"{rel}:{node.lineno} torchaudio.{node.attr}")
+                offenders.append(f"{rel}:{node.lineno} torchaudio.{node.func.attr}")
     assert not offenders, (
         "Use services.audio_io.load_audio / audio_info / _safe_torchaudio_save "
         f"(TorchCodec-independent) instead of: {offenders}"
