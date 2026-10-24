@@ -21,7 +21,7 @@ from fastapi.testclient import TestClient
 
 
 @pytest.fixture(autouse=True)
-def batch():
+def batch(monkeypatch):
     """The batch module, imported at TEST time — never at collection time.
 
     Clears in-memory state between tests and replaces the worker with a
@@ -35,6 +35,13 @@ def batch():
     TestClient portal teardown forever at ~97% of a full-suite run.
     """
     import api.routers.batch as batch
+    from services import translation_engines
+
+    # These queue mechanics tests assume the explicitly optional Argos engine
+    # is installed. CI's default install intentionally omits it; keep the
+    # production availability check and model the installed state here.
+    monkeypatch.setattr(translation_engines, "is_installed", lambda provider: provider == "argos")
+    monkeypatch.setattr(translation_engines, "is_ready", lambda provider: provider == "argos")
     batch._jobs.clear()
     batch._queue = None
     if batch._worker_task and not batch._worker_task.done():
@@ -83,6 +90,14 @@ def _enqueue(client, video_bytes, langs="es", voice_id="", preserve_bg="true"):
 
 
 class TestEnqueue:
+    def test_uninstalled_translation_engine_is_rejected(self, client, fake_video, monkeypatch):
+        from services import translation_engines
+
+        monkeypatch.setattr(translation_engines, "is_installed", lambda _provider: False)
+        response = _enqueue(client, fake_video)
+        assert response.status_code == 409
+        assert response.json()["detail"] == "Install the selected translation engine before adding this batch"
+
     def test_returns_job_id(self, client, fake_video):
         resp = _enqueue(client, fake_video, "es,fr")
         assert resp.status_code == 200, resp.text
