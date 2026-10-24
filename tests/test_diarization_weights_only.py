@@ -66,6 +66,14 @@ def test_loads_pyannote_after_registering_safe_globals(reset_diar, monkeypatch):
 def test_no_token_short_circuits_without_loading(reset_diar, monkeypatch):
     mm = reset_diar
     monkeypatch.setattr("services.token_resolver.resolve", lambda: None)
+    from contextlib import contextmanager
+
+    @contextmanager
+    def missing_local_config():
+        raise FileNotFoundError("pyannote bundle is not installed")
+        yield  # pragma: no cover
+
+    monkeypatch.setattr("services.diarization_local.local_pipeline_config", missing_local_config)
     pipe, err = mm.get_diarization_pipeline(return_error=True)
     assert pipe is None
     assert err == mm.DIARIZATION_ERR_NO_TOKEN

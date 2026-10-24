@@ -57,7 +57,7 @@ def test_home_keeps_creation_actions_with_localized_product_heading():
     assert "t('nav.home')" in home
     assert "t('homeUi.title')" in home
     assert "t('homeUi.subtitle')" in home
-    assert "<HomeContributors />" in home
+    assert "HomeContributors" not in home
     assert "group.map(" in home
     assert "browser.open('https://voicestudio.sh')" not in home
     assert "PanelLeftOpenIcon" not in home

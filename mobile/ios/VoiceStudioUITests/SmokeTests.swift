@@ -9,7 +9,7 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(no.waitForExistence(timeout: 10))
         // SwiftUI sheets aren't XCUIElement.sheets; identify the two choices directly.
         XCTAssertTrue(app.buttons["consent.yes"].exists)
-        XCTAssertEqual(app.staticTexts["consent.title"].label, "Help improve VoiceStudio?")
+        XCTAssertEqual(app.staticTexts["consent.title"].label, "Help improve SpeechNexa?")
         let yes = app.buttons["consent.yes"]
         XCTAssertEqual(yes.label, "Yes, share anonymous stats")
         XCTAssertEqual(no.label, "No thanks")
@@ -54,7 +54,7 @@ final class SmokeTests: XCTestCase {
         XCTAssertEqual(light.value as? String, "Studio")
         light.tap()
         app.buttons["choice.option.signal"].tap()
-        XCTAssertEqual(light.value as? String, "VoiceStudio Original")
+        XCTAssertEqual(light.value as? String, "SpeechNexa Original")
     }
 
     @MainActor func testEveryTabRendersWhileHostInventoryIsLoading() throws {

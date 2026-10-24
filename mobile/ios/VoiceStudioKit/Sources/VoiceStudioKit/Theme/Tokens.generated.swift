@@ -127,7 +127,7 @@ public enum VSTokens {
             "terminalScrollbar": RGBA(0.5059, 0.5059, 0.5059, 1.0000),
             "terminalScrollbarHover": RGBA(0.9608, 0.9608, 0.9608, 1.0000),
         ]),
-        Palette(id: "signal", label: "VoiceStudio Original", light: [
+        Palette(id: "signal", label: "SpeechNexa Original", light: [
             "canvas": RGBA(0.9922, 0.9686, 0.9922, 1.0000),
             "chrome": RGBA(0.9922, 0.9686, 0.9922, 1.0000),
             "toolbar": RGBA(0.9922, 0.9686, 0.9922, 1.0000),
@@ -712,7 +712,7 @@ public enum VSTokens {
             "terminalScrollbar": RGBA(0.4863, 0.4706, 0.5137, 1.0000),
             "terminalScrollbarHover": RGBA(0.6000, 0.5843, 0.6235, 1.0000),
         ]),
-        Palette(id: "heritage", label: "VoiceStudio Classic", light: [
+        Palette(id: "heritage", label: "SpeechNexa Classic", light: [
             "canvas": RGBA(0.9804, 0.9647, 0.9882, 1.0000),
             "chrome": RGBA(0.9333, 0.8980, 0.9490, 1.0000),
             "toolbar": RGBA(0.9333, 0.8980, 0.9490, 1.0000),

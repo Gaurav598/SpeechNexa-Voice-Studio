@@ -52,14 +52,15 @@ previous job deliberately reported findings without failing the workflow.
 ## Current CodeQL triage
 
 The first valid public CodeQL run succeeded at `f8f9bac7` and reported 624
-current-code alerts: 521 note, 70 warning and 33 error. Scan success means
-analysis completed, not that all findings were fixed. Focused review found
+current-code alerts: 521 note, 70 warning and 33 error. The next scan at
+`13cd74889` reported 619 open alerts: 521 note, 62 warning, 9 medium,
+23 high and 4 error. Scan success means analysis completed, not that all
+findings were fixed. Focused review found
 three raw exception-to-response disclosures (watermark detection, optional
 Argos package checking and legacy dubbing transcription), two unsafe log
 fields, and a reflected URL in a test-only HTML fixture. These were fixed in
 the follow-up source change with fail-before/pass-after response tests;
-165 affected tests passed with seven unexpected passes. The CodeQL scan after
-that change is required to confirm which alerts close.
+165 affected tests passed with seven unexpected passes.
 
 The other reviewed error-level findings include a fixed-message SSE failure
 wrapper, intentional opt-in LAN binding protected by PIN and per-client
@@ -67,6 +68,11 @@ limits, and path operations with basename validation, resolved-path
 containment or native-only guards. They are not broadly dismissed; remaining
 alerts need rule-by-rule review. In particular, CodeQL source paths alone do
 not prove an unauthenticated traversal exploit or a safe false positive.
+The 23 high-level alerts in the later scan comprise 22 Python path-injection
+reports on guarded or native-only paths reviewed in the triage, plus one
+JavaScript XSS report where React renders a user-selected cover filename as
+escaped text. These assessments do not dispose of the alerts or establish
+that every adjacent path is safe.
 
 ## Bandit review
 

@@ -135,7 +135,7 @@ func licenceMessageListsModelsAndComputerActionOnce(_ message: String) throws {
     for palette in VSTokens.palettes {
         #expect(Theme.paletteLabel(palette, l10n: l10n) == (palette.id == "default" ? l10n.t("themeAppearance.default") : palette.label))
     }
-    #expect(Theme.paletteLabel(try #require(VSTokens.palettes.first { $0.id == "signal" }), l10n: l10n) == "VoiceStudio Original")
+    #expect(Theme.paletteLabel(try #require(VSTokens.palettes.first { $0.id == "signal" }), l10n: l10n) == "SpeechNexa Original")
 }
 
 @Test(arguments: [(0.0, "0:00"), (1.0, "0:01"), (61.9, "1:01"), (3601.0, "60:01"), (-3.0, "0:00"), (Double.nan, "0:00"), (Double.infinity, "0:00")])

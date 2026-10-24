@@ -59,3 +59,18 @@ def test_pyannote_binds_the_shim():
     assert getattr(_pp.hf_hub_download, "_ov_uat_shim", False), (
         "pyannote.audio.core.pipeline.hf_hub_download is not the use_auth_token shim"
     )
+
+
+def test_pyannote_metadata_works_with_torchaudio_210(tmp_path):
+    """pyannote 3.x must import and read metadata after TorchAudio removed info."""
+    import numpy as np
+    import soundfile as sf
+
+    _ensure_pyannote_hf_token_compat()
+    from pyannote.audio.core.io import Audio, get_torchaudio_info
+    wav_path = tmp_path / "clip.wav"
+    sf.write(wav_path, np.zeros(1600, dtype="float32"), 16000)
+    metadata = get_torchaudio_info({"audio": str(wav_path)})
+    assert metadata.sample_rate == 16000
+    assert metadata.num_frames == 1600
+    assert Audio().get_duration(str(wav_path)) == pytest.approx(0.1)

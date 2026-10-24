@@ -113,6 +113,14 @@ class TestGetDiarizationPipeline:
         # Force token_resolver.resolve() to return None.
         # Dotted-path setattr — identity-stable across sys.modules churn.
         monkeypatch.setattr("services.token_resolver.resolve", lambda skip=frozenset(): None)
+        from contextlib import contextmanager
+
+        @contextmanager
+        def missing_local_config():
+            raise FileNotFoundError("pyannote bundle is not installed")
+            yield  # pragma: no cover
+
+        monkeypatch.setattr("services.diarization_local.local_pipeline_config", missing_local_config)
 
         pipe, err = model_manager.get_diarization_pipeline(return_error=True)
         assert pipe is None

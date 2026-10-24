@@ -10,6 +10,7 @@ import threading
 import time
 import weakref
 from concurrent.futures import Executor, Future, ThreadPoolExecutor
+from typing import NamedTuple
 
 from utils.containment import contain_system_exit
 
@@ -20,6 +21,14 @@ from utils.containment import contain_system_exit
 
 _torch = None
 _OmniVoice = None
+
+
+class _PyannoteAudioMetaData(NamedTuple):
+    sample_rate: int
+    num_frames: int
+    num_channels: int
+    bits_per_sample: int
+    encoding: str
 
 
 def _lazy_torch():
@@ -4564,6 +4573,7 @@ def _ensure_pyannote_hf_token_compat():
     also patch any already-imported pyannote submodule that bound it directly.
     Idempotent (guarded by an attribute marker).
     """
+    _ensure_pyannote_torchaudio_compat()
     import functools
     import sys as _sys
     import huggingface_hub as _hf
@@ -4589,6 +4599,37 @@ def _ensure_pyannote_hf_token_compat():
             for _name in ("hf_hub_download", "snapshot_download"):
                 if hasattr(_mod, _name):
                     setattr(_mod, _name, _wrap(getattr(_mod, _name)))
+
+
+def _ensure_pyannote_torchaudio_compat():
+    """Restore metadata APIs pyannote 3.x imports from TorchAudio 2.8.
+
+    TorchAudio 2.9 removed ``AudioMetaData``, ``info`` and
+    ``list_audio_backends``. WhisperX still requires pyannote 3.x, so keep
+    these small metadata adapters until that dependency can move to 4.x.
+    Actual decoding remains on TorchAudio/TorchCodec and the application's
+    ``services.audio_io.load_audio`` fallback; no model or media is fetched.
+    """
+    import torchaudio
+
+    from services.audio_io import audio_info
+
+    def info(source, *, backend=None):
+        metadata = audio_info(source)
+        return _PyannoteAudioMetaData(
+            metadata.sample_rate,
+            metadata.num_frames,
+            metadata.num_channels,
+            metadata.bits_per_sample,
+            "UNKNOWN",
+        )
+
+    if not hasattr(torchaudio, "AudioMetaData"):
+        torchaudio.AudioMetaData = _PyannoteAudioMetaData
+    if not hasattr(torchaudio, "info"):
+        torchaudio.info = info
+    if not hasattr(torchaudio, "list_audio_backends"):
+        torchaudio.list_audio_backends = lambda: ["soundfile"]
 
 
 def get_diarization_pipeline(return_error: bool = False):
@@ -4641,10 +4682,13 @@ def get_diarization_pipeline(return_error: bool = False):
             WhisperXBackend._allow_vad_pickle_globals()
         except Exception as _glob_e:
             logger.debug("pyannote safe-globals allowlist skipped: %s", _glob_e)
-        from pyannote.audio import Pipeline
-        logger.info("Loading Pyannote Diarization Pipeline...")
         from services.diarization_local import local_pipeline_config
         with local_pipeline_config() as config_path:
+            # Resolve the explicitly installed bundle before importing pyannote.
+            # A missing bundle without a token is an installation/auth issue,
+            # even if pyannote's optional runtime cannot be imported yet.
+            from pyannote.audio import Pipeline
+            logger.info("Loading Pyannote Diarization Pipeline...")
             pipeline = Pipeline.from_pretrained(config_path, use_auth_token=hf_token)
         if pipeline is None:
             raise RuntimeError("The installed diarisation pipeline could not be loaded")

@@ -124,7 +124,7 @@ object VSTokens {
             "terminalScrollbar" to 0xFF818181,
             "terminalScrollbarHover" to 0xFFF5F5F5,
         )),
-        Palette("signal", "VoiceStudio Original", mapOf(
+        Palette("signal", "SpeechNexa Original", mapOf(
             "canvas" to 0xFFFDF7FD,
             "chrome" to 0xFFFDF7FD,
             "toolbar" to 0xFFFDF7FD,
@@ -709,7 +709,7 @@ object VSTokens {
             "terminalScrollbar" to 0xFF7C7883,
             "terminalScrollbarHover" to 0xFF99959F,
         )),
-        Palette("heritage", "VoiceStudio Classic", mapOf(
+        Palette("heritage", "SpeechNexa Classic", mapOf(
             "canvas" to 0xFFFAF6FC,
             "chrome" to 0xFFEEE5F2,
             "toolbar" to 0xFFEEE5F2,

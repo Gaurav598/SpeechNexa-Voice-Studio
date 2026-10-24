@@ -30,6 +30,7 @@ import pytest
 import torch
 
 from schemas.requests import DubRequest
+from services import audio_io
 
 
 SR = 24000
@@ -157,8 +158,7 @@ def _done(parsed):
 
 
 def _track_samples(job_dir):
-    import torchaudio
-    wav, sr = torchaudio.load(str(job_dir / "dubbed_es.wav"))
+    wav, sr = audio_io.load_audio(str(job_dir / "dubbed_es.wav"))
     return wav.shape[-1], sr
 
 
@@ -188,7 +188,6 @@ def test_final_dub_track_and_seg_wav_are_watermarked(patched_generate, monkeypat
     import api.routers.dub_generate as dg
     from services import audio_io
     from services import watermark
-    import torchaudio
 
     # The fake TTS emits a constant 0.25; the mix fades ramp that through
     # [0, 0.25], so a positive marker could be forged by the fade. Use a
@@ -226,12 +225,12 @@ def test_final_dub_track_and_seg_wav_are_watermarked(patched_generate, monkeypat
 
     # Final assembled track is watermarked (mark survived the multi-chunk
     # int16 memmap write).
-    final_wav, sr = torchaudio.load(str(job_dir / "dubbed_es.wav"))
+    final_wav, sr = audio_io.load_audio(str(job_dir / "dubbed_es.wav"))
     assert final_wav.shape[-1] == int(35.0 * SR)
     assert watermark.detect_watermark(final_wav, sr)["is_watermarked"] is True
 
     # Downloadable per-segment WAV is watermarked too.
-    seg_wav, seg_sr = torchaudio.load(str(job_dir / "seg_es_0.wav"))
+    seg_wav, seg_sr = audio_io.load_audio(str(job_dir / "seg_es_0.wav"))
     assert watermark.detect_watermark(seg_wav, seg_sr)["is_watermarked"] is True
 
     # Marked exactly once, on the FRESH seg (33s natural length) — NOT on the
@@ -246,7 +245,6 @@ def test_zero_and_negative_duration_segments_dont_crash(patched_generate):
     They become harmless in-memory entries the assembly tolerates, and the
     positive-duration silence's mix_<id> scratch WAV is cleaned up (#639)."""
     run, model, job, job_dir = patched_generate
-    import torchaudio
 
     job["duration"] = 5.0
     segs = [
@@ -261,7 +259,7 @@ def test_zero_and_negative_duration_segments_dont_crash(patched_generate):
     _done(parsed)
     track = job_dir / "dubbed_es.wav"
     assert track.exists()
-    n, sr = torchaudio.load(str(track))[0].shape[-1], SR
+    n, sr = audio_io.load_audio(str(track))[0].shape[-1], SR
     assert n == int(5.0 * SR)
 
     # The mix_<id> scratch WAV for the positive-duration silence is gone.
@@ -306,8 +304,7 @@ def test_smart_fit_audio_only_stretch_keeps_original_duration(patched_generate):
     assert "video_stretch_plans" not in job
     assert job["seg_wav_kind"] == "natural"
     # The on-disk per-segment WAV stays natural-rate (2.2s, not slot-squeezed).
-    import torchaudio
-    wav, sr2 = torchaudio.load(str(job_dir / "seg_es_1.wav"))
+    wav, sr2 = audio_io.load_audio(str(job_dir / "seg_es_1.wav"))
     assert wav.shape[-1] == int(2.2 * SR)
 
 
@@ -402,8 +399,7 @@ def test_strict_slot_to_smart_fit_forces_one_full_regen(patched_generate):
     assert job["seg_wav_kind"] == "natural"
     job["seg_wav_kind"] = "slotted"
     job["seg_wav_kind_by_lang"]["es"] = "slotted"
-    import torchaudio
-    wav, _ = torchaudio.load(str(job_dir / "seg_es_0.wav"))
+    wav, _ = audio_io.load_audio(str(job_dir / "seg_es_0.wav"))
     assert wav.shape[-1] == int(1.5 * SR)  # current caches retain full speech
 
     # smart_fit "re-mix only" request — but the disk WAVs are slotted, so
@@ -412,7 +408,7 @@ def test_strict_slot_to_smart_fit_forces_one_full_regen(patched_generate):
     run(_body(segs, timing_strategy="smart_fit", regen_only=[]))
     assert model.calls == ["1.5:uno", "1.5:dos"]
     assert job["seg_wav_kind"] == "natural"
-    wav, _ = torchaudio.load(str(job_dir / "seg_es_0.wav"))
+    wav, _ = audio_io.load_audio(str(job_dir / "seg_es_0.wav"))
     assert wav.shape[-1] == int(1.5 * SR)  # natural-rate now
 
     # Now a fit-only change (re-mix): natural WAVs are reusable — zero TTS.
@@ -455,8 +451,7 @@ def test_strict_slot_to_natural_mode_forces_one_full_regen(
 
     assert model.calls == ["1.5:uno", "1.5:dos"]
     assert job["seg_wav_kind"] == "natural"
-    import torchaudio
-    wav, _ = torchaudio.load(str(job_dir / "seg_es_0.wav"))
+    wav, _ = audio_io.load_audio(str(job_dir / "seg_es_0.wav"))
     assert wav.shape[-1] == int(1.5 * SR)
 
 
@@ -518,13 +513,12 @@ def test_foreign_rate_natural_cache_keeps_resample_scratch_fallback(
 
     import api.routers.dub_generate as dg
     from services import audio_io
-    import torchaudio
     import torchaudio.functional as AF
 
     cached_path = str(job_dir / "seg_es_0.wav")
-    cached_wav, cached_sr = torchaudio.load(cached_path)
+    cached_wav, cached_sr = audio_io.load_audio(cached_path)
     foreign_sr = cached_sr // 2
-    torchaudio.save(cached_path, AF.resample(cached_wav, cached_sr, foreign_sr), foreign_sr)
+    audio_io._safe_torchaudio_save(cached_path, AF.resample(cached_wav, cached_sr, foreign_sr), foreign_sr, format="wav")
 
     original_load = audio_io.torchaudio.load
     original_save = dg.atomic_save_wav
@@ -588,7 +582,6 @@ def test_rvc_keeps_natural_rate_audio_outside_strict_slot(
     run, _model, job, job_dir = patched_generate
     import api.routers.dub_generate as dg
     from services import audio_io
-    import torchaudio
 
     monkeypatch.setattr(dg, "rvc_is_enabled", lambda: True)
     monkeypatch.setattr(dg, "apply_rvc", lambda _path: None)
@@ -598,7 +591,7 @@ def test_rvc_keeps_natural_rate_audio_outside_strict_slot(
         timing_strategy="concise",
     ))
 
-    wav, _ = torchaudio.load(str(job_dir / "seg_es_0.wav"))
+    wav, _ = audio_io.load_audio(str(job_dir / "seg_es_0.wav"))
     assert wav.shape[-1] == int(1.5 * SR)
     assert job["seg_wav_kind"] == "natural"
 

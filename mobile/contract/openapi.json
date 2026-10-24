@@ -863,7 +863,7 @@
      },
      "model": {
       "default": "whisper-1",
-      "description": "ASR model. OpenAI ids ('whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe') are served by the active engine; a VoiceStudio ASR engine id must name the active engine (400 otherwise).",
+      "description": "ASR model. OpenAI ids ('whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe') are served by the active engine; a SpeechNexa ASR engine id must name the active engine (400 otherwise).",
       "title": "Model",
       "type": "string"
      },
@@ -955,7 +955,7 @@
      },
      "model": {
       "default": "whisper-1",
-      "description": "ASR model. OpenAI ids ('whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe') are served by the active engine; a VoiceStudio ASR engine id must name the active engine (400 otherwise).",
+      "description": "ASR model. OpenAI ids ('whisper-1', 'gpt-4o-transcribe', 'gpt-4o-mini-transcribe') are served by the active engine; a SpeechNexa ASR engine id must name the active engine (400 otherwise).",
       "title": "Model",
       "type": "string"
      },
@@ -3864,7 +3864,7 @@
       "type": "string"
      },
      "service": {
-      "default": "VoiceStudio",
+      "default": "SpeechNexa",
       "title": "Service",
       "type": "string"
      },
@@ -3972,7 +3972,7 @@
      },
      "denoise": {
       "default": true,
-      "description": "VoiceStudio extension: prepend denoise control when supported.",
+      "description": "SpeechNexa extension: prepend denoise control when supported.",
       "title": "Denoise",
       "type": "boolean"
      },
@@ -3998,7 +3998,7 @@
         "type": "null"
        }
       ],
-      "description": "VoiceStudio extension: target output duration in seconds.",
+      "description": "SpeechNexa extension: target output duration in seconds.",
       "title": "Duration"
      },
      "guidance_scale": {
@@ -4012,7 +4012,7 @@
         "type": "null"
        }
       ],
-      "description": "VoiceStudio extension: classifier-free guidance scale (app default 2.0).",
+      "description": "SpeechNexa extension: classifier-free guidance scale (app default 2.0).",
       "title": "Guidance Scale"
      },
      "input": {
@@ -4043,7 +4043,7 @@
         "type": "null"
        }
       ],
-      "description": "OpenAI's voice-style instructions, forwarded as the engine's style instruction (OmniVoice keeps only its voice-design tags). VoiceStudio's `instruct` wins when both are sent.",
+      "description": "OpenAI's voice-style instructions, forwarded as the engine's style instruction (OmniVoice keeps only its voice-design tags). SpeechNexa's `instruct` wins when both are sent.",
       "title": "Instructions"
      },
      "language": {
@@ -4060,7 +4060,7 @@
      },
      "model": {
       "default": "omnivoice",
-      "description": "TTS model to use. Maps to VoiceStudio engine IDs: 'omnivoice', 'voxcpm2', 'cosyvoice', 'mlx-audio', 'kittentts', 'moss-tts-nano'. OpenAI model ids ('tts-1', 'tts-1-hd', 'gpt-4o-mini-tts', dated snapshots) are aliases for the active engine.",
+      "description": "TTS model to use. Maps to SpeechNexa engine IDs: 'omnivoice', 'voxcpm2', 'cosyvoice', 'mlx-audio', 'kittentts', 'moss-tts-nano'. OpenAI model ids ('tts-1', 'tts-1-hd', 'gpt-4o-mini-tts', dated snapshots) are aliases for the active engine.",
       "title": "Model",
       "type": "string"
      },
@@ -4075,12 +4075,12 @@
         "type": "null"
        }
       ],
-      "description": "VoiceStudio extension: iterative unmasking steps (app default 16; 32 = the model's documented quality preset).",
+      "description": "SpeechNexa extension: iterative unmasking steps (app default 16; 32 = the model's documented quality preset).",
       "title": "Num Step"
      },
      "preprocess_prompt": {
       "default": true,
-      "description": "VoiceStudio extension: trim/preprocess reference prompt when supported.",
+      "description": "SpeechNexa extension: trim/preprocess reference prompt when supported.",
       "title": "Preprocess Prompt",
       "type": "boolean"
      },
@@ -4107,7 +4107,7 @@
         "type": "null"
        }
       ],
-      "description": "VoiceStudio extension: deterministic sampling seed.",
+      "description": "SpeechNexa extension: deterministic sampling seed.",
       "title": "Seed"
      },
      "speed": {
@@ -4145,7 +4145,7 @@
        }
       ],
       "default": "default",
-      "description": "Voice to use. For VoiceStudio: pass a voice profile ID, a voice profile name (case-insensitive; an ID wins, and a name shared by several profiles is a 409 listing their IDs), 'default', or a KittenTTS preset name (also accepted as OpenAI's {\"id\": ...} object). OpenAI voice names (alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse, marin, cedar) are accepted and mapped to the engine default.",
+      "description": "Voice to use. For SpeechNexa: pass a voice profile ID, a voice profile name (case-insensitive; an ID wins, and a name shared by several profiles is a 409 listing their IDs), 'default', or a KittenTTS preset name (also accepted as OpenAI's {\"id\": ...} object). OpenAI voice names (alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse, marin, cedar) are accepted and mapped to the engine default.",
       "title": "Voice"
      }
     },
@@ -18345,7 +18345,7 @@
   },
   "/v1/audio/voices": {
    "get": {
-    "description": "List available voices. VoiceStudio extension to the OpenAI API.",
+    "description": "List available voices. SpeechNexa extension to the OpenAI API.",
     "operationId": "list_voices_v1_audio_voices_get",
     "responses": {
      "200": {
