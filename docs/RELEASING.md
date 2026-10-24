@@ -1,7 +1,7 @@
 # Publishing SpeechNexa source and planning releases
 
 SpeechNexa is an AGPL-3.0-only derivative of VoiceStudio. The active GitHub
-destination is `Gaurav598/SpeechNexa-AI-Voice-Studio`; `debpalash/VoiceStudio`
+destination is `Gaurav598/SpeechNexa-Voice-Studio`; `debpalash/VoiceStudio`
 is a read-only provenance source. Electron is the desktop and web UI. Native
 iOS and Android sources have a separate, unverified first-release contract.
 The current verification state and known gaps are in
@@ -19,7 +19,7 @@ do not authorize SpeechNexa publication.
 ## Source publication checklist
 
 1. Check `git remote -v`, the intended branch and the full diff. Push only to
-   `origin` (`Gaurav598/SpeechNexa-AI-Voice-Studio`). Keep SpeechNexa's
+   `origin` (`Gaurav598/SpeechNexa-Voice-Studio`). Keep SpeechNexa's
    owner-authored commit history separate from upstream Git history. Preserve
    upstream copyright and license attribution in the source and notices; never
    push to `upstream`. Future non-fast-forward updates need explicit owner direction.

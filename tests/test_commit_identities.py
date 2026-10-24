@@ -360,7 +360,7 @@ def test_identity_check_does_not_rewrite_commits_and_current_guide_is_owner_scop
     assert "git rebase --exec 'git commit --amend --no-edit --reset-author'" not in text
     contributing = (ROOT / ".github" / "CONTRIBUTING.md").read_text(encoding="utf-8")
     assert "personal, owner-maintained" in contributing
-    assert "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/issues" in contributing
+    assert "https://github.com/Gaurav598/SpeechNexa-Voice-Studio/issues" in contributing
 
 
 @pytest.mark.parametrize("name", ["Devin[bot]", "Gemini[bot]", "Jules[bot]"])

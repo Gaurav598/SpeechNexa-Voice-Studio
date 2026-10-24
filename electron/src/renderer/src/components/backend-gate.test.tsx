@@ -246,7 +246,7 @@ it('explains unsupported Windows proxy bypass rules before retrying setup', () =
   );
 });
 
-const RELEASES_URL = 'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/releases';
+const RELEASES_URL = 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/releases';
 it('sends Apple Silicon users on the Intel build to the arm64 download (#2598)', () => {
   backendStatus.setupIssue = 'wrong_architecture';
   render(

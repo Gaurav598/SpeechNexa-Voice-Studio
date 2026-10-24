@@ -102,7 +102,7 @@ describe('DesktopUpdater', () => {
     expect(mocks.autoUpdater.channel).toBe(`electron-stable-${process.platform}-${process.arch}`);
     expect(mocks.autoUpdater.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/releases/latest/download',
+      url: 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/releases/latest/download',
       channel: `electron-stable-${process.platform}-${process.arch}`,
     });
 
@@ -145,7 +145,7 @@ describe('DesktopUpdater', () => {
     expect(mocks.autoUpdater.channel).toBe(channel);
     expect(mocks.autoUpdater.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/releases/download/v0.5.7',
+      url: 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/releases/download/v0.5.7',
       channel,
     });
   });
@@ -237,7 +237,7 @@ describe('DesktopUpdater', () => {
     expect(mocks.autoUpdater.allowDowngrade).toBe(false);
     expect(mocks.autoUpdater.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/releases/latest/download',
+      url: 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/releases/latest/download',
       channel: `electron-stable-${process.platform}-${process.arch}`,
     });
     expect(updater).not.toHaveProperty('setChannel');
@@ -363,7 +363,7 @@ describe('DesktopUpdater', () => {
       },
     ]);
     expect(fetcher).toHaveBeenCalledWith(
-      expect.stringContaining('/Gaurav598/SpeechNexa-AI-Voice-Studio/releases?per_page=30'),
+      expect.stringContaining('/Gaurav598/SpeechNexa-Voice-Studio/releases?per_page=30'),
       expect.objectContaining({
         headers: expect.objectContaining({ 'User-Agent': 'SpeechNexa' }),
         signal: expect.any(AbortSignal),

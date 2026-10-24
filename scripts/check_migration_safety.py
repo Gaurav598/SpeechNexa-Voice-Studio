@@ -78,7 +78,7 @@ def check() -> list[str]:
     if "SPEECHNEXA_ENABLE_UPDATES === '1'" not in updater:
         errors.append("Updater no longer requires SpeechNexa opt-in")
     report = (ROOT / "electron/src/shared/utils/bugReport.js").read_text(encoding="utf-8")
-    if "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio" not in report:
+    if "https://github.com/Gaurav598/SpeechNexa-Voice-Studio" not in report:
         errors.append("Bug reports no longer target SpeechNexa")
     return errors
 

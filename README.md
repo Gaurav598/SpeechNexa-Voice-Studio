@@ -19,8 +19,8 @@ The imported application includes other workflows (cloning, dictation, dubbing, 
 Requirements for the verified source workflow: Python 3.11, [uv](https://docs.astral.sh/uv/), Bun matching `package.json`, and a system able to run the existing KittenTTS ONNX CPU adapter. The smoke test used an Apple M4 Mac with 16 GB RAM. No cloud API key is required.
 
 ```bash
-git clone https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio.git
-cd SpeechNexa-AI-Voice-Studio
+git clone https://github.com/Gaurav598/SpeechNexa-Voice-Studio.git
+cd SpeechNexa-Voice-Studio
 uv sync --locked --python 3.11
 bun install --frozen-lockfile
 ```

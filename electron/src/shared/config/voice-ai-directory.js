@@ -82,7 +82,7 @@ export const VOICE_AI_DIRECTORY = [
   },
   {
     name: 'SpeechNexa API',
-    url: 'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio',
+    url: 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio',
     logoUrl: speechNexaLogo,
   },
 ];

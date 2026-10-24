@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_readme_uses_the_speechnexa_repository_for_setup() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
-    assert "git clone https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio.git" in readme
+    assert "git clone https://github.com/Gaurav598/SpeechNexa-Voice-Studio.git" in readme
     assert "npx skills add debpalash/VoiceStudio" not in readme
     assert "npx skills add debpalash/omnivoice-studio" not in readme
 

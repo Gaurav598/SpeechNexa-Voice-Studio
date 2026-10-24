@@ -68,7 +68,7 @@ export interface IntegrationSetup {
   panel?: ComponentType<IntegrationPanelProps>;
 }
 
-const REPO_DOCS = 'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/blob/main/docs';
+const REPO_DOCS = 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/blob/main/docs';
 const DOCKER_HUB_IMAGE = 'palashdeb/omnivoice-studio';
 const GHCR_IMAGE = 'ghcr.io/debpalash/voicestudio';
 // Published images keep this stable even when a desktop build chooses another local default.

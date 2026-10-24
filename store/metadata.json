@@ -21,10 +21,10 @@
     ]
   },
   "urls": {
-    "website": "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio",
-    "privacyPolicy": "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/blob/main/docs/electron-privacy.md",
-    "support": "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/issues",
-    "source": "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio"
+    "website": "https://github.com/Gaurav598/SpeechNexa-Voice-Studio",
+    "privacyPolicy": "https://github.com/Gaurav598/SpeechNexa-Voice-Studio/blob/main/docs/electron-privacy.md",
+    "support": "https://github.com/Gaurav598/SpeechNexa-Voice-Studio/issues",
+    "source": "https://github.com/Gaurav598/SpeechNexa-Voice-Studio"
   },
   "requirements": {
     "diskGib": 10,

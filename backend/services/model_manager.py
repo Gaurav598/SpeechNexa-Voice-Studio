@@ -1373,7 +1373,7 @@ def _timeout_guidance(
             "machine, so shorter text or a lighter engine won't help. "
             "Restart the backend to clear it (Settings → Logs → Backend has "
             "the stack trace that was captured), and please report it with "
-            "that log at https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/issues — "
+            "that log at https://github.com/Gaurav598/SpeechNexa-Voice-Studio/issues — "
             "the trace names exactly where it stopped."
         )
     common = (

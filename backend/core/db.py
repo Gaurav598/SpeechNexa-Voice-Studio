@@ -637,7 +637,7 @@ def _run_alembic_upgrade() -> None:
             f"exactly as the failed migration left it). "
             f"{backup_note}. "
             "What to do: relaunch to retry; if it keeps failing, report it at "
-            "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/issues (keep the backup file). "
+            "https://github.com/Gaurav598/SpeechNexa-Voice-Studio/issues (keep the backup file). "
             f"To roll back manually: quit the app, replace {Path(DB_PATH).name} with the backup "
             "file, and reinstall the previous version."
         )

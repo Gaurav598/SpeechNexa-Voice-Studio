@@ -4,7 +4,7 @@ SpeechNexa is a personal project whose source is being migrated. There is no ver
 
 ## Reporting
 
-Report a suspected vulnerability through the repository's private [GitHub security advisory](https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/security/advisories/new). Do not post exploit details in a public issue or send them to upstream project accounts; those accounts do not operate SpeechNexa.
+Report a suspected vulnerability through the repository's private [GitHub security advisory](https://github.com/Gaurav598/SpeechNexa-Voice-Studio/security/advisories/new). Do not post exploit details in a public issue or send them to upstream project accounts; those accounts do not operate SpeechNexa.
 
 ## Current checks
 

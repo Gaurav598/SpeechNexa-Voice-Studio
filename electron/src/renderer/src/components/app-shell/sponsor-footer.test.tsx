@@ -27,12 +27,12 @@ it('keeps integrations and the SpeechNexa repository reachable', async () => {
   const repository = screen.getByRole('link', { name: 'support.star_github' });
   expect(repository).toHaveAttribute(
     'href',
-    'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio',
+    'https://github.com/Gaurav598/SpeechNexa-Voice-Studio',
   );
   fireEvent.click(repository);
   await waitFor(() =>
     expect(mock.open).toHaveBeenCalledWith(
-      'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio',
+      'https://github.com/Gaurav598/SpeechNexa-Voice-Studio',
     ),
   );
   expect(screen.queryByRole('button', { name: 'sponsorSlot.footer_brand' })).toBeNull();

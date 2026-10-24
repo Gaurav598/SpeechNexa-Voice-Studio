@@ -1,6 +1,6 @@
 # SpeechNexa support
 
-For setup problems and bugs, use [SpeechNexa Issues](https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/issues). Include your operating system, the failing step, and a reproducible example. Remove tokens, local paths and recordings from any diagnostic bundle before sharing it.
+For setup problems and bugs, use [SpeechNexa Issues](https://github.com/Gaurav598/SpeechNexa-Voice-Studio/issues). Include your operating system, the failing step, and a reproducible example. Remove tokens, local paths and recordings from any diagnostic bundle before sharing it.
 
 Report suspected vulnerabilities through [private security reporting](SECURITY.md), rather than a public issue.
 

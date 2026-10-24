@@ -1,6 +1,6 @@
 # SpeechNexa agent operating contract
 
-SpeechNexa is an AGPL-3.0-only derivative of VoiceStudio. Preserve original copyright and license notices, source attribution, and compatible user data. SpeechNexa's Git history is the owner's personal project history; do not import upstream commits or assign them to the owner. Read `CLAUDE.md` for the full project guidance; where these files differ, it wins. The repository's active destination is `Gaurav598/SpeechNexa-AI-Voice-Studio`. `debpalash/VoiceStudio` is a read-only provenance source, never a push target.
+SpeechNexa is an AGPL-3.0-only derivative of VoiceStudio. Preserve original copyright and license notices, source attribution, and compatible user data. SpeechNexa's Git history is the owner's personal project history; do not import upstream commits or assign them to the owner. Read `CLAUDE.md` for the full project guidance; where these files differ, it wins. The repository's active destination is `Gaurav598/SpeechNexa-Voice-Studio`. `debpalash/VoiceStudio` is a read-only provenance source, never a push target.
 
 ## Product boundaries
 

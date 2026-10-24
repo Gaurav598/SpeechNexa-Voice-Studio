@@ -31,7 +31,7 @@ vi.mock('@/hooks/use-backend-status', () => ({
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('sonner', () => ({ toast }));
 vi.mock('./twilio-setup', () => ({
-  TWILIO_DOCS: 'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/blob/main/docs/integrations/twilio.md',
+  TWILIO_DOCS: 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/blob/main/docs/integrations/twilio.md',
   TwilioSetup: ({
     hero,
     rail,

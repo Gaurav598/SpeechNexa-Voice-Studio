@@ -22,16 +22,16 @@ it('opens SpeechNexa project destinations without inherited owner links', () => 
   expect(screen.getByRole('heading', { name: 'app.name' })).toBeVisible();
   expect(screen.getByRole('link', { name: 'contact.security_cta' })).toHaveAttribute(
     'href',
-    'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/security/advisories/new',
+    'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/security/advisories/new',
   );
   expect(screen.getByRole('link', { name: 'contact.feature_cta' })).toHaveAttribute(
     'href',
-    'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio/issues',
+    'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/issues',
   );
   const repository = screen.getByRole('link', { name: 'support.star_github' });
   fireEvent.click(repository);
   expect(mock.open).toHaveBeenCalledWith(
-    'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio',
+    'https://github.com/Gaurav598/SpeechNexa-Voice-Studio',
   );
   expect(screen.queryByRole('link', { name: 'GitHub Sponsors' })).not.toBeInTheDocument();
 });

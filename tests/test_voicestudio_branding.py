@@ -74,7 +74,7 @@ def test_active_icon_is_speechnexa_and_legacy_shared_mark_is_preserved() -> None
 
 def test_python_package_metadata_points_to_speechnexa_and_upstream_model() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text()
-    destination = "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio"
+    destination = "https://github.com/Gaurav598/SpeechNexa-Voice-Studio"
     assert f'Homepage = "{destination}"' in pyproject
     assert f'Repository = "{destination}"' in pyproject
     assert '"Upstream TTS Model" = "https://github.com/k2-fsa/OmniVoice"' in pyproject

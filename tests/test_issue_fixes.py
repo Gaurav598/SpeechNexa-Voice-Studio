@@ -50,7 +50,7 @@ def test_speechnexa_readme_does_not_direct_users_to_upstream_discord():
     readme = (_REPO / "README.md").read_text(encoding="utf-8")
     assert OLD_DISCORD not in readme
     assert NEW_DISCORD not in readme
-    assert "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio" in readme
+    assert "https://github.com/Gaurav598/SpeechNexa-Voice-Studio" in readme
 
 
 def test_no_old_discord_link_anywhere():

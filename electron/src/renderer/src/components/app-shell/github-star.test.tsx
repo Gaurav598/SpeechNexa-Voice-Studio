@@ -17,7 +17,7 @@ it('links to SpeechNexa without showing or fetching an inherited star count', ()
   render(<GithubStar />);
   expect(screen.getByRole('link', { name: 'support.star_github' })).toHaveAttribute(
     'href',
-    'https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio',
+    'https://github.com/Gaurav598/SpeechNexa-Voice-Studio',
   );
   expect(screen.queryByText('43,638')).not.toBeInTheDocument();
   expect(fetchCount).not.toHaveBeenCalled();

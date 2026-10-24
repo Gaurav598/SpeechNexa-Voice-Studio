@@ -3,7 +3,7 @@
   "version": "0.0.0-electron",
   "private": true,
   "description": "SpeechNexa desktop and web speech studio (Electron).",
-  "homepage": "https://github.com/Gaurav598/SpeechNexa-AI-Voice-Studio",
+  "homepage": "https://github.com/Gaurav598/SpeechNexa-Voice-Studio",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "VoiceStudio contributors",
