@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import os
 import platform as _platform
+import re
 import sys
 import time
 from pathlib import Path
@@ -242,6 +243,14 @@ def disk_full_message(*, cache_dir: "str | None" = None) -> str:
     )
 
 
+_REPO_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+
+def _is_valid_repo_id(repo_id: str) -> bool:
+    """Return True when repo_id matches expected HF 'org/name' safe characters."""
+    return bool(_REPO_ID_RE.fullmatch(repo_id))
+
+
 def _repo_dir_name(repo_id: str) -> str:
     """HF cache dir name for a repo: 'k2-fsa/OmniVoice' → 'models--k2-fsa--OmniVoice'."""
     return "models--" + repo_id.replace("/", "--")
@@ -414,6 +423,8 @@ def _is_cached_on_disk(repo_id: str) -> bool:
     stops a present model from being mistaken for missing and re-downloaded
     (#117/#118).
     """
+    if not _is_valid_repo_id(repo_id):
+        return False
     name = _repo_dir_name(repo_id)
     for root in _hub_cache_roots():
         snaps = os.path.join(root, name, "snapshots")
@@ -446,6 +457,8 @@ def _scan_cache_on_disk() -> dict[str, dict]:
             if not name.startswith("models--"):
                 continue
             repo_id = name[len("models--"):].replace("--", "/")
+            if not _is_valid_repo_id(repo_id):
+                continue
             if repo_id in out:
                 continue  # first root wins (HF_HUB_CACHE before the /hub probe)
             repo_root = os.path.join(root, name)
