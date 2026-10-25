@@ -4,14 +4,14 @@ import test from 'node:test';
 import { distributionPackaging } from '../electron-builder.config.mjs';
 import metadata from '../../store/metadata.json' with { type: 'json' };
 
-test('keeps direct Linux packaging and its updater unchanged', () => {
+test('keeps direct Linux packaging pointed at the SpeechNexa updater', () => {
   const packaging = distributionPackaging('direct');
   assert.deepEqual(packaging.linuxTargets, ['AppImage', 'deb']);
   assert.equal(packaging.linuxExecutableName, undefined);
   assert.equal(packaging.snapcraft, undefined);
   assert.deepEqual(packaging.publish, {
     provider: 'generic',
-    url: 'https://github.com/debpalash/VoiceStudio/releases/latest/download',
+    url: 'https://github.com/Gaurav598/SpeechNexa-Voice-Studio/releases/latest/download',
     channel: `electron-stable-${process.platform}-${process.arch}`,
   });
 });
