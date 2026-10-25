@@ -6,6 +6,11 @@ Updated: 2026-10-25 (Asia/Kolkata). Repository: `Gaurav598/SpeechNexa-Voice-Stud
 
 The signed-in GitHub code-scanning page showed **619 open, 0 closed** alerts on
 `main` before this repair, at `af645c2b822ebe0598143fa904f1f80ef83758b1`.
+After the first repair commit `00701ff349618390fdd5ff969f0d2afd21680651`
+completed both CodeQL analyses, the browser still showed **619 open, 0 closed**.
+Alert #38 was confirmed on that commit; no alert closure is claimed for the
+first batch. This ledger includes a follow-up correction whose own CodeQL
+rescan must be checked before claiming alert resolution.
 The prior recorded distribution was 521 note, 62 warning, 9 medium, 23 high,
 and 4 error. This is a baseline, not a verified post-fix count. The first two
 pages exposed 50 current alerts, including all 23 high findings, all 9 medium
@@ -70,7 +75,7 @@ remaining 50 warnings and 521 notes still need a full inventory.
 | #21-23 | Dub preview/background exports could follow a symlink into a sibling job. Exact job/export-directory checks now precede probes and writes. Confirmed defect fixed locally; CodeQL closure pending. |
 | #26-29 | Active model cache paths derive from known model IDs or validated catalogue IDs; the cache root is operator configuration. No remote traversal shown. Individual CodeQL flows remain unverified. |
 | #30 | `/tools/probe` intentionally reads an operator-selected path behind native true-loopback access. No remote file-probe path shown; individual flow still needs review. |
-| #31-38 | Predictable `.slices` path allowed a pre-existing symlink to redirect retime writes. Private temporary directory now used under the validated output parent. Confirmed defect fixed locally; CodeQL closure pending. |
+| #31-38 | Predictable `.slices` path allowed a pre-existing symlink to redirect retime writes. Private temporary directory now used under the validated output parent. Alert #38 remained open on the first repair commit: its verified `py/path-injection` flow runs from the `lang` query parameter through `_safe_lang_or_400` and `preview_retimed_*` to `shutil.rmtree(slices_dir)`. A second cross-job scratch-file symlink regression failed before the follow-up guard (HTTP 200) and passed after the resolved scratch path was restricted to the exact job exports directory (HTTP 400). The full 75-test affected dub/smart-fit group passed with 8 skips. CodeQL closure remains unverified pending the follow-up rescan. |
 | #39 | Dub streaming generator catches body exceptions and emits a fixed failure code; cleanup outside that catch remains to inspect against the actual CodeQL flow. Unverified. |
 | #40 | Wildcard listener is an explicit LAN-share action. Non-loopback API requests require a six-digit PIN and the middleware limits failed guesses to 10 per client per minute. Intentional exposure with mitigation; retain for periodic review. |
 | #570 | `img src` receives a browser-created blob URL, not a backend path or filename. HTML bytes disguised as a PNG filename do not create a script element in the renderer test; the backend now rejects those bytes. Likely false positive, pending full CodeQL flow and Chromium image-decoding validation. |
@@ -112,6 +117,10 @@ remaining 50 warnings and 521 notes still need a full inventory.
   browser-generated blob URL; its Chromium behavior and CodeQL flow remain under review.
 - The repair MCP bridge refuses redirects with its session capability. OpenCode
   repair prompts use exclusive, owner-only file creation in temporary storage.
+- A fresh CodeQL flow review of #38 identified a separate retime scratch-file
+  symlink into a sibling job's exports directory. The exact-parent guard now
+  rejects it before Smart Fit preparation or ffmpeg can run; the first scan
+  still reports #38 and the follow-up fix requires a new scan.
 - The Microsoft Store handoff now derives its default download repository from
   SpeechNexa metadata; a regression test rejects the prior upstream default.
 
@@ -155,6 +164,5 @@ The exact default-lock IDs reproduced in this session are
    archive cases; add fail-before/pass-after tests for confirmed defects.
 3. Group note and warning alerts by rule/module. Fix real quality defects and
    document evidenced informational or unreachable groups individually.
-4. Commit and push the locally verified batch normally to existing `main`,
-   read all final GitHub workflows and the new CodeQL alert status, then record
-   the exact final open count and remaining risks here.
+4. Verify final GitHub workflows and the follow-up CodeQL alert status, then
+   record the exact final open count and remaining risks here.

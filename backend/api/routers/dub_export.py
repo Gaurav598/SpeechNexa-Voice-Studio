@@ -1265,7 +1265,10 @@ async def dub_preview_video(
             retime_work_path = os.path.realpath(os.path.join(
                 exports_dir, f"preview_retimed_{lang}_{bg_suffix}.tmp.mp4",
             ))
-            if retime_work_path != _base and not retime_work_path.startswith(_base + os.sep):
+            if (
+                os.path.dirname(retime_work_path) != exports_dir
+                or not retime_work_path.startswith(_base + os.sep)
+            ):
                 raise HTTPException(status_code=400, detail="Invalid export path")
             try:
                 retime_decision = await prepare_smart_fit_video(

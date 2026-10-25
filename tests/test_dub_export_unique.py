@@ -170,6 +170,41 @@ class TestDubExportUniqueness:
         )
         assert response.status_code == 400
 
+    def test_preview_rejects_retime_scratch_symlink_to_another_job(self, app_client):
+        client, dc, dx, tmp = app_client
+        job_id, job_dir = _seed_job_with_tracks(dc, tmp)
+        job = dc._dub_jobs[job_id]
+        job["dubbed_tracks"]["es"]["timing_strategy"] = "smart_fit"
+        job["fit_plans"] = {"es": {"plan": [{"kind": "keep"}], "orig_duration": 1.0}}
+        exports = job_dir / "exports"
+        exports.mkdir()
+        other_exports = tmp / "dub_jobs" / "other_job" / "exports"
+        other_exports.mkdir(parents=True)
+        other_retime = other_exports / "private.mp4"
+        other_retime.write_bytes(b"private job output")
+        try:
+            (exports / "preview_retimed_es_nobg.tmp.mp4").symlink_to(other_retime)
+        except (OSError, NotImplementedError):
+            pytest.skip("file symlinks unavailable")
+
+        async def fake_run(cmd, **_kwargs):
+            Path(cmd[-2]).write_bytes(b"\x00FASTSTART")
+            return 0, b"", b""
+
+        with (
+            patch.object(dx, "find_ffmpeg", return_value="ffmpeg"),
+            patch.object(dx, "run_ffmpeg", new=fake_run),
+            patch.object(dx, "prepare_smart_fit_video", return_value=None) as prepare,
+        ):
+            response = client.get(
+                f"/dub/preview-video/{job_id}",
+                params={"lang": "es", "preserve_bg": False},
+            )
+
+        assert response.status_code == 400
+        prepare.assert_not_called()
+        assert other_retime.read_bytes() == b"private job output"
+
     def test_preview_is_faststart_and_reuses_immutable_cache(self, app_client):
         client, dc, dx, tmp = app_client
         job_id, job_dir = _seed_job_with_tracks(dc, tmp)
