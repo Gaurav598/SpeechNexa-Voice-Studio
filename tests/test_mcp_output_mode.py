@@ -372,6 +372,26 @@ def test_opus_url_encoder_timeout_is_service_unavailable(monkeypatch, tmp_path):
     assert "timed out" in response.json()["detail"]
 
 
+def test_opus_url_encoder_error_does_not_disclose_local_paths(monkeypatch, tmp_path):
+    from api.routers import generation
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from services import audio_io
+
+    (tmp_path / "ab12cd34.wav").write_bytes(_sample_wav())
+    monkeypatch.setattr(generation, "OUTPUTS_DIR", str(tmp_path))
+
+    async def failed_encode(_wav):
+        raise RuntimeError("ffmpeg failed reading /Users/private/recordings/secret.wav")
+
+    monkeypatch.setattr(audio_io, "encode_ogg_opus", failed_encode)
+    app = FastAPI()
+    app.include_router(generation.router)
+    response = TestClient(app).get("/audio/ab12cd34.opus")
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Ogg/Opus encoding failed; try again later"
+
+
 def test_opus_url_does_not_follow_render_symlink_outside_outputs(monkeypatch, tmp_path):
     from api.routers import generation
     from fastapi import FastAPI

@@ -230,7 +230,6 @@ def main() -> int:
                 "message": f"{type(exc).__name__}: {exc}",
                 "traceback": traceback.format_exc(),
             })
-    return 0
 
 
 if __name__ == "__main__":

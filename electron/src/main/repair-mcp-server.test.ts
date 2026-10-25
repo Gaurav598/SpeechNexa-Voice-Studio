@@ -14,6 +14,7 @@ let server: Server;
 let baseUrl: string;
 let streamClosed: Promise<void>;
 let markClosed: () => void;
+let redirectedRequests = 0;
 
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), 'vs-repair-mcp-'));
@@ -21,6 +22,11 @@ beforeAll(async () => {
   const { code } = await transformWithOxc(source, 'repair-mcp-server.ts');
   writeFileSync(join(dir, 'server.mjs'), code);
   server = createServer((req, res) => {
+    if (req.url === '/redirect') {
+      res.writeHead(302, { location: '/redirect-target' }).end();
+      return;
+    }
+    if (req.url === '/redirect-target') redirectedRequests += 1;
     if (req.url === '/endless') {
       // Never finishes: three-byte characters so the byte cap lands mid-character.
       res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
@@ -82,6 +88,12 @@ const apiCall = (path: string) =>
   });
 
 describe('repair MCP api_request', () => {
+  it('does not follow backend redirects with the repair capability', async () => {
+    redirectedRequests = 0;
+    const [reply] = await call([apiCall('/redirect')]);
+    expect(reply.result.content[0].text).toBe('HTTP 302');
+    expect(redirectedRequests).toBe(0);
+  });
   it('returns small responses untouched', async () => {
     const [reply] = await call([apiCall('/small')]);
     expect(reply.result.content[0].text).toBe('HTTP 200\nhello €');

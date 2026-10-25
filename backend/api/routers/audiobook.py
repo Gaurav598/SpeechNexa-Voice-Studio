@@ -229,6 +229,34 @@ async def audiobook_cover(cover: UploadFile = File(...)) -> dict:
     data = await cover.read()
     if not data or len(data) > _COVER_MAX_BYTES:
         raise HTTPException(status_code=400, detail="cover must be between 1 byte and 8 MB")
+    # ffmpeg consumes this file later. Decode and re-encode it here so a file
+    # with only a trusted extension cannot smuggle arbitrary parser input.
+    import io
+    import warnings
+    from PIL import Image, ImageOps, UnidentifiedImageError
+
+    expected_format = "PNG" if ext == ".png" else "JPEG"
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(data)) as source:
+                if source.format != expected_format or source.width * source.height > 16_000_000:
+                    raise ValueError("unsupported cover image")
+                source.load()
+                oriented = ImageOps.exif_transpose(source)
+                mode = "RGBA" if expected_format == "PNG" and (
+                    "A" in oriented.getbands() or "transparency" in oriented.info
+                ) else "RGB"
+                output = io.BytesIO()
+                oriented.convert(mode).save(output, format=expected_format)
+                data = output.getvalue()
+        if len(data) > _COVER_MAX_BYTES:
+            raise ValueError("normalized cover exceeds size limit")
+    except (
+        UnidentifiedImageError, OSError, ValueError,
+        Image.DecompressionBombWarning, Image.DecompressionBombError,
+    ) as exc:
+        raise HTTPException(status_code=422, detail="Use a valid JPEG or PNG cover up to 16 megapixels") from exc
     cover_dir = os.path.join(OUTPUTS_DIR, "audiobook_covers")
     os.makedirs(cover_dir, exist_ok=True)
     path = os.path.join(cover_dir, f"{uuid.uuid4().hex[:12]}{ext}")

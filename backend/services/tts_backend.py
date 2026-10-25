@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import math
 import os
 import re
 import threading
@@ -187,7 +188,7 @@ def _float_env(name: str, default: float) -> float:
     # inf/nan parse fine and then poison the caller: `sleep(inf)` raises
     # OverflowError, turning a retryable download failure into an unrelated
     # crash that hides the original error (#1224 review).
-    if value != value or value in (float("inf"), float("-inf")):
+    if not math.isfinite(value):
         return default
     return value
 

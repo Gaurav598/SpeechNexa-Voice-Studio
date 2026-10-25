@@ -69,6 +69,8 @@ async function callApi(args: Record<string, unknown>) {
     method,
     headers,
     body: hasBody ? JSON.stringify(args.body) : undefined,
+    // A backend redirect must not forward the repair capability to another origin.
+    redirect: 'manual',
     signal: AbortSignal.timeout(120_000),
   });
   const text = await readBounded(response, MAX_RESPONSE);

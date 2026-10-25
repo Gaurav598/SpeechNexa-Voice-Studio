@@ -458,6 +458,53 @@ def test_video(tmp_path_factory):
     return path
 
 
+def test_retime_does_not_follow_preexisting_slices_symlink(tmp_path, monkeypatch):
+    from core import config
+
+    dub_dir = tmp_path / "dub"
+    dub_dir.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    out_path = dub_dir / "retimed.mp4"
+    try:
+        (dub_dir / "retimed.mp4.slices").symlink_to(outside, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("directory symlinks unavailable")
+    monkeypatch.setattr(config, "DUB_DIR", str(dub_dir))
+
+    async def fake_ffmpeg(cmd, **_kwargs):
+        Path(cmd[-1]).write_bytes(b"rendered")
+        return 0, b"", b""
+
+    # The full suite may reload services.video_retime; patch the globals of
+    # the function this module imported, so no real ffmpeg process can run.
+    monkeypatch.setitem(render_retimed_video.__globals__, "run_ffmpeg", fake_ffmpeg)
+    asyncio.run(render_retimed_video(
+        job_id=None, ffmpeg="ffmpeg", video_path="input.mp4",
+        chunks=[(0.0, 1.0, 1.0)], out_path=str(out_path), batch_size=1,
+    ))
+    assert out_path.read_bytes() == b"rendered"
+    assert not list(outside.iterdir())
+
+
+def test_retime_removes_private_slices_after_failure(tmp_path, monkeypatch):
+    from core import config
+
+    monkeypatch.setattr(config, "DUB_DIR", str(tmp_path))
+
+    async def failed_ffmpeg(_cmd, **_kwargs):
+        return 1, b"", b"invalid input"
+
+    monkeypatch.setitem(render_retimed_video.__globals__, "run_ffmpeg", failed_ffmpeg)
+    with pytest.raises(RetimeError, match="retime batch"):
+        asyncio.run(render_retimed_video(
+            job_id=None, ffmpeg="ffmpeg", video_path="input.mp4",
+            chunks=[(0.0, 1.0, 1.0)],
+            out_path=str(tmp_path / "retimed.mp4"), batch_size=1,
+        ))
+    assert not list(tmp_path.glob(".retimed.mp4.slices-*"))
+
+
 @needs_ffmpeg
 class TestRetimeExecutorIntegration:
     @pytest.fixture(autouse=True)
@@ -529,7 +576,6 @@ class TestRetimeExecutorIntegration:
             ))
         assert not os.path.exists(str(out_path) + ".slices")
         assert not os.path.exists(out_path)
-
 
 @pytest.fixture
 def export_app(tmp_path, monkeypatch):

@@ -36,12 +36,14 @@ export function createMicrosoftStoreHandoff({
   output,
   version,
   tag,
-  repository = "debpalash/VoiceStudio",
+  repository,
   generatedAt = new Date().toISOString(),
 }) {
+  const metadata = JSON.parse(readFileSync(resolve(root, "store/metadata.json"), "utf8"));
+  const repositoryName = repository ?? new URL(metadata.urls.source).pathname.replace(/^\//, "");
   assert.match(version, /^\d+\.\d+\.\d+$/, "Version must be a release version");
   assert.equal(tag, `v${version}`, "Microsoft Store packages require the exact version tag");
-  assert.match(repository, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/, "Invalid GitHub repository");
+  assert.match(repositoryName, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/, "Invalid GitHub repository");
 
   const packages = readdirSync(releaseDir)
     .filter((name) =>
@@ -86,7 +88,7 @@ export function createMicrosoftStoreHandoff({
         architecture: arch,
         type: "exe",
         file,
-        url: `https://github.com/${repository}/releases/download/${tag}/${file}`,
+        url: `https://github.com/${repositoryName}/releases/download/${tag}/${file}`,
         sha256: digest,
         bytes: statSync(path).size,
         installerParameters: "/S",
@@ -100,7 +102,6 @@ export function createMicrosoftStoreHandoff({
     packages.some((item) => item.architecture === "x64"),
     "An x64 Store package is required",
   );
-  const metadata = JSON.parse(readFileSync(resolve(root, "store/metadata.json"), "utf8"));
   const assets = JSON.parse(readFileSync(resolve(root, "store/assets.json"), "utf8"));
   const handoff = {
     schemaVersion: 1,
@@ -141,7 +142,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     output,
     version,
     tag: option("tag", `v${version}`),
-    repository: option("repository", process.env.GITHUB_REPOSITORY || "debpalash/VoiceStudio"),
+    repository: option("repository", process.env.GITHUB_REPOSITORY),
   });
   console.log(`Wrote ${basename(output)}`);
 }

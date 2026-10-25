@@ -1,5 +1,8 @@
 import type { ChildProcessWithoutNullStreams } from 'node:child_process';
 import { EventEmitter } from 'node:events';
+import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
   agentChildEnv,
@@ -13,6 +16,7 @@ import {
   repairDiagnosticContext,
   requestPrompt,
   translationLaunchArgs,
+  writePrivateRepairPrompt,
 } from './repair-agents';
 
 const request = {
@@ -23,6 +27,19 @@ const request = {
 };
 
 describe('packaged app repair sessions', () => {
+  it('creates a private prompt and refuses to replace an existing file', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'speechnexa-repair-prompt-'));
+    try {
+      const path = join(directory, 'request.md');
+      writePrivateRepairPrompt(path, 'private diagnostics');
+      expect(readFileSync(path, 'utf8')).toBe('private diagnostics');
+      if (process.platform !== 'win32') expect(statSync(path).mode & 0o777).toBe(0o600);
+      expect(() => writePrivateRepairPrompt(path, 'replacement')).toThrow();
+      expect(readFileSync(path, 'utf8')).toBe('private diagnostics');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
   it('classifies provider account failures without forwarding their output', () => {
     expect(
       agentProviderFailure(

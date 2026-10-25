@@ -120,3 +120,22 @@ async def test_delete_still_removes_terminal_jobs(batch, tmp_path, status):
     video, out = _job(batch, tmp_path, status=status)
     assert batch.delete_batch_job("j1") == {"deleted": True}
     assert not video.exists() and not out.exists() and "j1" not in batch._jobs
+
+
+async def test_delete_rejects_output_symlink_to_another_job(batch, tmp_path):
+    video, out = _job(batch, tmp_path)
+    other = tmp_path / "batch" / "j2"
+    other.mkdir()
+    (other / "keep.wav").write_bytes(b"other job")
+    (out / "out.wav").unlink()
+    out.rmdir()
+    try:
+        out.symlink_to(other, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("directory symlinks unavailable")
+
+    with pytest.raises(HTTPException) as error:
+        batch.delete_batch_job("j1")
+    assert error.value.status_code == 400
+    assert video.exists()
+    assert (other / "keep.wav").read_bytes() == b"other job"

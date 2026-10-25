@@ -164,22 +164,27 @@ function assertSaveDataRequest(value: unknown): SaveDataRequest {
   };
 }
 
+function isTrustedMainFrame(
+  event: IpcMainInvokeEvent | Electron.IpcMainEvent,
+  owner: BrowserWindow | null,
+): boolean {
+  return Boolean(
+    owner &&
+    event.sender === owner.webContents &&
+    event.senderFrame === owner.webContents.mainFrame &&
+    isTrustedRenderer(event.senderFrame.url, process.env.ELECTRON_RENDERER_URL),
+  );
+}
+
 export function assertTrustedMainFrame(
-  event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent | Electron.IpcMainEvent,
   owner: BrowserWindow | null,
 ): asserts owner is BrowserWindow {
-  if (
-    !owner ||
-    event.sender !== owner.webContents ||
-    event.senderFrame !== owner.webContents.mainFrame ||
-    !isTrustedRenderer(event.senderFrame.url, process.env.ELECTRON_RENDERER_URL)
-  ) {
-    throw new Error('Untrusted main-frame request');
-  }
+  if (!isTrustedMainFrame(event, owner)) throw new Error('Untrusted main-frame request');
 }
 
 /** Read-only connection metadata is also needed by trusted utility windows. */
-function assertTrustedTopLevelFrame(event: IpcMainInvokeEvent): void {
+function assertTrustedTopLevelFrame(event: IpcMainInvokeEvent | Electron.IpcMainEvent): void {
   const owner = windowFor(event);
   if (
     !owner ||
@@ -347,13 +352,19 @@ export function registerIpc(
     return openPermissionSettings(kind);
   });
 
-  ipcMain.handle(CHANNELS.backendGetStatus, (): BackendStatus => supervisor.status);
+  ipcMain.handle(CHANNELS.backendGetStatus, (event): BackendStatus => {
+    assertTrustedTopLevelFrame(event);
+    return supervisor.status;
+  });
   ipcMain.handle(CHANNELS.backendAcknowledgeCrash, (event) => {
     const owner = getMainWindow();
     assertTrustedMainFrame(event, owner);
     return supervisor.acknowledgeLastCrash();
   });
-  ipcMain.handle(CHANNELS.backendGetConnection, () => supervisor.connection);
+  ipcMain.handle(CHANNELS.backendGetConnection, (event) => {
+    assertTrustedTopLevelFrame(event);
+    return supervisor.connection;
+  });
   ipcMain.handle(CHANNELS.backendTestRemote, async (event, raw: unknown) => {
     const owner = getMainWindow();
     assertTrustedMainFrame(event, owner);
@@ -532,8 +543,14 @@ export function registerIpc(
     assertTrustedMainFrame(event, owner);
     return supervisor.setRuntimeLocation(null);
   });
-  ipcMain.handle(CHANNELS.backendRestart, () => supervisor.restart());
-  ipcMain.handle(CHANNELS.filesExtractScript, (_event, input: unknown) => extractWordScript(input));
+  ipcMain.handle(CHANNELS.backendRestart, (event) => {
+    assertTrustedMainFrame(event, getMainWindow());
+    return supervisor.restart();
+  });
+  ipcMain.handle(CHANNELS.filesExtractScript, (event, input: unknown) => {
+    assertTrustedMainFrame(event, getMainWindow());
+    return extractWordScript(input);
+  });
 
   ipcMain.handle(CHANNELS.filesAuthorizeMediaTool, async (event, raw: unknown) => {
     const owner = getMainWindow();
@@ -602,13 +619,15 @@ export function registerIpc(
     return { canceled: false, path: picked.filePath };
   });
 
-  ipcMain.handle(CHANNELS.filesRevealPath, (_event, raw: unknown) => {
+  ipcMain.handle(CHANNELS.filesRevealPath, (event, raw: unknown) => {
+    assertTrustedMainFrame(event, getMainWindow());
     const path = assertString(raw, 'path');
     if (!isAbsolute(path)) throw new Error('revealPath needs an absolute path');
     shell.showItemInFolder(path);
   });
 
-  ipcMain.handle(CHANNELS.filesOpenExternal, async (_event, raw: unknown) => {
+  ipcMain.handle(CHANNELS.filesOpenExternal, async (event, raw: unknown) => {
+    assertTrustedMainFrame(event, getMainWindow());
     const target = assertString(raw, 'url');
     if (isAbsolute(target)) {
       const failure = await shell.openPath(target);
@@ -623,18 +642,22 @@ export function registerIpc(
   });
 
   ipcMain.on(CHANNELS.windowMinimize, (event) => {
+    if (!isTrustedMainFrame(event, getMainWindow())) return;
     (windowFor(event) ?? getMainWindow())?.minimize();
   });
   ipcMain.on(CHANNELS.windowToggleMaximize, (event) => {
+    if (!isTrustedMainFrame(event, getMainWindow())) return;
     const win = windowFor(event) ?? getMainWindow();
     if (!win) return;
     if (win.isMaximized()) win.unmaximize();
     else win.maximize();
   });
   ipcMain.on(CHANNELS.windowClose, (event) => {
+    if (!isTrustedMainFrame(event, getMainWindow())) return;
     (windowFor(event) ?? getMainWindow())?.close();
   });
   ipcMain.handle(CHANNELS.windowIsMaximized, (event) => {
+    assertTrustedMainFrame(event, getMainWindow());
     return (windowFor(event) ?? getMainWindow())?.isMaximized() ?? false;
   });
 }

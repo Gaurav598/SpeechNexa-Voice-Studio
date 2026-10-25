@@ -316,6 +316,12 @@ export function openCodePromptArgs(promptFile: string): string[] {
   return ['Follow the attached SpeechNexa repair request.', '--file', promptFile];
 }
 
+export function writePrivateRepairPrompt(path: string, prompt: string): void {
+  // The prompt includes diagnostics. Refuse a pre-existing path and limit
+  // access even when the system temp directory is shared by other users.
+  writeFileSync(path, prompt, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
+}
+
 function isVoiceStudioCheckout(path: string): boolean {
   const complete = [
     '.git',
@@ -872,7 +878,7 @@ export async function registerRepairAgents(
       ];
       if (request.agent === 'opencode') {
         promptFile = join(app.getPath('temp'), `voicestudio-repair-${sessionId}.md`);
-        writeFileSync(promptFile, prompt, 'utf8');
+        writePrivateRepairPrompt(promptFile, prompt);
         args.push(...openCodePromptArgs(promptFile));
       }
       child = spawn(command.executable, args, {

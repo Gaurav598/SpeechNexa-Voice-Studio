@@ -7,6 +7,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 /** Both native save handlers, driven through the real registered IPC code. */
 const native = vi.hoisted(() => ({
   handlers: new Map<string, (event: unknown, raw: unknown) => Promise<unknown>>(),
+  listeners: new Map<string, (event: unknown) => void>(),
   savePath: '',
   failWrites: false,
 }));
@@ -41,7 +42,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
 const owner = vi.hoisted(() => {
   const mainFrame = { url: 'app://voicestudio/index.html' };
   const webContents = { mainFrame };
-  return { webContents, isMaximized: () => false };
+  return { webContents, isMaximized: () => false, minimize: vi.fn(), close: vi.fn() };
 });
 
 vi.mock('electron', () => ({
@@ -53,7 +54,8 @@ vi.mock('electron', () => ({
   ipcMain: {
     handle: (channel: string, handler: (event: unknown, raw: unknown) => Promise<unknown>) =>
       native.handlers.set(channel, handler),
-    on: vi.fn(),
+    on: (channel: string, listener: (event: unknown) => void) =>
+      native.listeners.set(channel, listener),
   },
   net: { fetch: vi.fn(async () => new Response('replacement audio bytes')) },
   shell: {},
@@ -67,12 +69,19 @@ import { decodeDownloadFailure } from '../shared/download-failure';
 
 let directory: string;
 const event = { sender: owner.webContents, senderFrame: owner.webContents.mainFrame };
+const foreignEvent = {
+  sender: { mainFrame: { url: 'https://untrusted.example/' } },
+  senderFrame: { url: 'https://untrusted.example/' },
+};
 
 beforeEach(async () => {
   directory = await mkdtemp(join(tmpdir(), 'voicestudio-save-'));
   native.savePath = join(directory, 'take.wav');
   native.failWrites = false;
   native.handlers.clear();
+  native.listeners.clear();
+  owner.minimize.mockClear();
+  owner.close.mockClear();
   registerIpc(
     {
       subscribe: () => () => {},
@@ -145,4 +154,20 @@ it('carries the backend error body when a backend download fails (#2616)', async
     body: JSON.stringify({ detail }),
   });
   expect(await readFile(native.savePath, 'utf8')).toBe('complete previous export');
+});
+
+it('rejects untrusted frames before disclosing backend state or invoking desktop actions', async () => {
+  expect(() => native.handlers.get(CHANNELS.backendGetStatus)!(foreignEvent, undefined)).toThrow(
+    'Untrusted top-level request',
+  );
+  expect(() => native.handlers.get(CHANNELS.backendRestart)!(foreignEvent, undefined)).toThrow(
+    'Untrusted main-frame request',
+  );
+  await expect(
+    native.handlers.get(CHANNELS.filesOpenExternal)!(foreignEvent, 'https://example.com'),
+  ).rejects.toThrow('Untrusted main-frame request');
+  native.listeners.get(CHANNELS.windowMinimize)!(foreignEvent);
+  native.listeners.get(CHANNELS.windowClose)!(foreignEvent);
+  expect(owner.minimize).not.toHaveBeenCalled();
+  expect(owner.close).not.toHaveBeenCalled();
 });

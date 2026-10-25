@@ -91,6 +91,60 @@ def test_missing_separation_blocks_preserved_export(monkeypatch):
     assert error.value.status_code == 409
 
 
+def test_preserved_background_error_does_not_disclose_ffmpeg_paths(monkeypatch, tmp_path):
+    import api.routers.dub_export as de
+    from services import dub_background
+    from fastapi import HTTPException
+
+    job_dir = tmp_path / 'job'
+    job_dir.mkdir()
+    monkeypatch.setattr(de, 'DUB_DIR', str(tmp_path))
+    monkeypatch.setattr(de, '_optional_dub_artifact', lambda *_: str(job_dir / 'input.wav'))
+    monkeypatch.setattr(de, '_existing_job_dir_or_404', lambda *_: str(job_dir))
+
+    async def fail(*_args):
+        raise RuntimeError('ffmpeg could not read /Users/private/recordings/secret.wav')
+
+    monkeypatch.setattr(dub_background, 'surgical_background', fail)
+    job = {'dubbed_tracks': {'en': {'source_segments': [{'start': 0, 'end': 1}]}}}
+    with pytest.raises(HTTPException) as error:
+        asyncio.run(de._preserved_background(job, 'job', 'en'))
+    assert error.value.status_code == 409
+    assert error.value.detail == {
+        'code': 'dub_background_unavailable',
+        'message': 'Could not preserve the original background audio. Try again or disable Preserve Background.',
+    }
+
+
+def test_preserved_background_rejects_exports_symlink_to_other_job(monkeypatch, tmp_path):
+    import api.routers.dub_export as de
+    from services import dub_background
+    from fastapi import HTTPException
+    from pathlib import Path
+
+    job = tmp_path / 'dub' / 'job'
+    job.mkdir(parents=True)
+    other = tmp_path / 'dub' / 'other' / 'exports'
+    other.mkdir(parents=True)
+    try:
+        (job / 'exports').symlink_to(other, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip('directory symlinks unavailable')
+    monkeypatch.setattr(de, 'DUB_DIR', str(tmp_path / 'dub'))
+    monkeypatch.setattr(de, '_optional_dub_artifact', lambda *_: str(job / 'input.wav'))
+    monkeypatch.setattr(de, '_existing_job_dir_or_404', lambda *_: str(job))
+    async def fake_background(_source, _bed, directory, *_args):
+        Path(directory, 'written.wav').write_bytes(b'cross-job write')
+        return str(Path(directory, 'written.wav'))
+    monkeypatch.setattr(dub_background, 'surgical_background', fake_background)
+    payload = {'dubbed_tracks': {'en': {'source_segments': [{'start': 0, 'end': 1}]}}}
+
+    with pytest.raises(HTTPException) as error:
+        asyncio.run(de._preserved_background(payload, 'job', 'en'))
+    assert error.value.status_code == 400
+    assert not list(other.iterdir())
+
+
 def test_srt_cues_a_frame_apart_retime_with_real_ffmpeg(tmp_path):
     """#2616: subtitle cues separated by ~16 ms leave sub-window 1.0x gap chunks;
     atempo on those failed the whole ffmpeg batch ("Invalid data found when

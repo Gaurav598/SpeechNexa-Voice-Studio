@@ -37,6 +37,7 @@ import asyncio
 import logging
 import os
 import shutil
+import tempfile
 from dataclasses import dataclass
 
 # Module access (not ``from core.config import DUB_DIR``) so the containment
@@ -269,8 +270,12 @@ async def render_retimed_video(
     batches = partition_batches(chunks, batch_size)
     if not batches:
         raise RetimeError("empty retime plan", stage="plan")
-    slices_dir = out_path + ".slices"
-    os.makedirs(slices_dir, exist_ok=True)
+    # A fixed sibling name can already be a symlink. Create a private,
+    # unpredictable directory so intermediate writes stay in the workspace.
+    slices_dir = tempfile.mkdtemp(
+        prefix=f".{os.path.basename(out_path)}.slices-",
+        dir=os.path.dirname(out_path),
+    )
     try:
         slice_paths: list[str] = []
         for bi, batch in enumerate(batches):

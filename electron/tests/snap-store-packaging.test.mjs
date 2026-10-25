@@ -23,6 +23,7 @@ test('builds the Snap Store distribution as a strictly confined store-owned pack
   assert.equal(packaging.snapcraft.base, 'core22');
   assert.equal(packaging.snapcraft.core22.confinement, 'strict');
   assert.equal(packaging.snapcraft.core22.grade, 'stable');
+  assert.equal(packaging.snapcraft.core22.title, metadata.identity.productName);
   assert.equal(packaging.snapcraft.core22.allowNativeWayland, true);
   assert.equal(packaging.snapcraft.core22.summary, metadata.listing.shortDescription);
   assert.equal(packaging.snapcraft.core22.description, metadata.listing.description);

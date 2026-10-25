@@ -34,7 +34,7 @@ SPEAKER_GAP = 1.2     # seconds — heuristic speaker-change gap (no pyannote)
 
 # Sentence-end punctuation across Latin, CJK, Bengali, Arabic, Thai, Armenian, Hindi, etc.
 _SENTENCE_END = re.compile(
-    r'([.!?。！？।؟…؛܀։՝።။၊।]["\')\]]?)(\s+|$)'
+    r'([.!?。！？।؟…؛܀։՝።။၊]["\')\]]?)(\s+|$)'
 )
 _CLAUSE_END = re.compile(r'([,;:—、،؍])(\s+|$)')
 _WS = re.compile(r'\s+')

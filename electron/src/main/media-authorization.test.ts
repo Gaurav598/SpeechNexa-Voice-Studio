@@ -20,6 +20,8 @@ afterEach(async () => {
 });
 it('compares full origins rather than URL prefixes', () => {
   expect(isTrustedRenderer('app://voicestudio/index.html')).toBe(true);
+  expect(isTrustedRenderer('app://voicestudio/index.html#/capture')).toBe(true);
+  expect(isTrustedRenderer('app://voicestudio/')).toBe(true);
   expect(isTrustedRenderer('http://localhost:3902/settings', 'http://localhost:3902')).toBe(true);
   for (const url of [
     'app://voicestudio.evil/index.html',
@@ -30,6 +32,13 @@ it('compares full origins rather than URL prefixes', () => {
   ]) {
     expect(isTrustedRenderer(url, 'http://localhost:3902')).toBe(false);
   }
+});
+it('does not trust backend HTML or other app-protocol documents as the renderer', () => {
+  expect(isTrustedRenderer('app://voicestudio/api/docs')).toBe(false);
+  expect(isTrustedRenderer('app://voicestudio/api/other')).toBe(false);
+  expect(isTrustedRenderer('app://voicestudio/other.html')).toBe(false);
+  expect(isTrustedRenderer('http://localhost:3902/api/docs', 'http://localhost:3902')).toBe(false);
+  expect(isTrustedRenderer('http://localhost:3902/api/other', 'http://localhost:3902')).toBe(false);
 });
 it('writes the backend capability format only for a matching executable', async () => {
   directory = await mkdtemp(join(tmpdir(), 'vs-authorization-'));

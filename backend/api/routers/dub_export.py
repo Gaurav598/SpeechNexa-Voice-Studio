@@ -60,15 +60,21 @@ async def _preserved_background(job: dict, job_id: str, lang: str, *, prepare: b
     strategy = track.get("timing_strategy") or job.get("timing_strategy")
     plans = job.get("fit_plans" if strategy == "smart_fit" else "video_stretch_plans") or {}
     entry = (plans.get(lang) or {}) if strategy in {"smart_fit", "stretch_video"} else {}
-    directory = os.path.join(_existing_job_dir_or_404(job_id), "exports")
+    directory = _job_exports_dir_or_400(job_id)
     os.makedirs(directory, exist_ok=True)
     try:
         return await surgical_background(source, bed, directory, segments, entry.get("plan") or [], float(entry.get("orig_duration") or job.get("duration") or 0))
     except (ValueError, RuntimeError) as exc:
-        # The client shows localized recovery guidance for this code; keep the
-        # concrete cause in the log so a diagnostic bundle explains it.
-        logger.warning("Preserved background unavailable for job %s (%s): %s", log_safe(job_id), log_safe(lang), log_safe(str(exc)[-500:]))
-        raise HTTPException(status_code=409, detail={"code": "dub_background_unavailable", "message": str(exc)}) from exc
+        # ffmpeg diagnostics can contain private host paths. The client uses
+        # this code for localized recovery guidance, so return a fixed message.
+        logger.warning(
+            "Preserved background unavailable for job %s (%s; %s)",
+            log_safe(job_id), log_safe(lang), type(exc).__name__,
+        )
+        raise HTTPException(status_code=409, detail={
+            "code": "dub_background_unavailable",
+            "message": "Could not preserve the original background audio. Try again or disable Preserve Background.",
+        }) from exc
 
 
 def _unique_stamp() -> str:
@@ -103,6 +109,21 @@ def _existing_job_dir_or_404(job_id: str) -> str:
     except OSError as exc:
         raise HTTPException(status_code=404, detail="Job directory not found") from exc
     raise HTTPException(status_code=404, detail="Job directory not found")
+
+
+def _job_exports_dir_or_400(job_id: str) -> str:
+    """Keep export cache writes in this job, including when links are present."""
+    job_dir = os.path.realpath(_existing_job_dir_or_404(job_id))
+    entry = os.path.join(job_dir, "exports")
+    exports_dir = os.path.realpath(entry)
+    base = os.path.realpath(DUB_DIR)
+    if (
+        os.path.islink(entry)
+        or os.path.dirname(exports_dir) != job_dir
+        or not exports_dir.startswith(base + os.sep)
+    ):
+        raise HTTPException(status_code=400, detail="Invalid job export path")
+    return exports_dir
 
 
 def _resolve_dub_artifact(value: object, job_id: str) -> Path:
@@ -1188,15 +1209,13 @@ async def dub_preview_video(
     # pattern — see dub_preview_segment; CodeQL does not track the guard
     # through a helper's return value).
     _base = os.path.realpath(DUB_DIR)
-    exports_dir = os.path.realpath(os.path.join(job_dir, "exports"))
-    if not exports_dir.startswith(_base + os.sep):
-        raise HTTPException(status_code=400, detail="Invalid job id")
+    exports_dir = _job_exports_dir_or_400(job_id)
     os.makedirs(exports_dir, exist_ok=True)
     bg_suffix = "surgical_v2_" + Path(bg_audio).stem if (preserve_bg and has_bg) else "nobg"
     preview_path = os.path.realpath(
         os.path.join(exports_dir, f"preview_v2_{lang}_{bg_suffix}.mp4")
     )
-    if not preview_path.startswith(_base + os.sep):
+    if os.path.dirname(preview_path) != exports_dir or not preview_path.startswith(_base + os.sep):
         raise HTTPException(status_code=400, detail="Invalid path")
 
     track_mtime = os.path.getmtime(track_path)

@@ -10,6 +10,7 @@ on backend restart — intentional, since GPU jobs can't be safely resumed.
 """
 import os
 import json
+import re
 import shutil
 import uuid
 import threading
@@ -66,6 +67,18 @@ _job_reservations: set[str] = set()
 # both is atomic under this lock.
 _reservation_lock = threading.Lock()
 _jobs: dict = {}                   # job_id → status dict
+
+
+def _batch_output_dir(job_id: str) -> str:
+    """Return a direct job child, refusing links to another job's outputs."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", job_id or ""):
+        raise HTTPException(status_code=400, detail="Invalid batch job path")
+    batch_root = os.path.realpath(os.path.join(DATA_DIR, "batch"))
+    entry = os.path.join(batch_root, job_id)
+    output_dir = os.path.realpath(entry)
+    if os.path.islink(entry) or os.path.dirname(output_dir) != batch_root:
+        raise HTTPException(status_code=400, detail="Invalid batch job path")
+    return output_dir
 
 
 class BatchJobStatus(BaseModel):
@@ -977,10 +990,7 @@ async def _admit_retry(job_id: str, job: dict):
         if any(not pair["installed"] for pair in status["pairs"]):
             raise HTTPException(409, "Install the required Argos language packs before retrying")
 
-    batch_root = os.path.realpath(os.path.join(DATA_DIR, "batch"))
-    output_dir = os.path.realpath(os.path.join(batch_root, job_id))
-    if os.path.dirname(output_dir) != batch_root:
-        raise HTTPException(status_code=400, detail="Invalid batch job path")
+    output_dir = _batch_output_dir(job_id)
     try:
         if os.path.isdir(output_dir):
             await asyncio.to_thread(shutil.rmtree, output_dir)
@@ -1042,6 +1052,7 @@ def delete_batch_job(job_id: str):
 
 
 def _delete_job_files(job_id: str, job: dict):
+    output_dir = _batch_output_dir(job_id)
     if job.get("video_path"):
         try:
             unlink_if_present(job["video_path"])
@@ -1050,10 +1061,6 @@ def _delete_job_files(job_id: str, job: dict):
                 status_code=500,
                 detail="Could not delete the batch video file. Close any app using it and retry.",
             ) from exc
-    batch_root = os.path.realpath(os.path.join(DATA_DIR, "batch"))
-    output_dir = os.path.realpath(os.path.join(batch_root, job_id))
-    if os.path.dirname(output_dir) != batch_root:
-        raise HTTPException(status_code=400, detail="Invalid batch job path")
     try:
         if os.path.isdir(output_dir):
             shutil.rmtree(output_dir)

@@ -134,6 +134,42 @@ class TestDubExportUniqueness:
         run_ffmpeg.assert_not_called()
         assert not (job_dir / "exports" / "preview_v2_es_surgical_v2_no_vocals.mp4").exists()
 
+    def test_preview_rejects_exports_symlink_to_another_job(self, app_client):
+        client, dc, _dx, tmp = app_client
+        job_id, job_dir = _seed_job_with_tracks(dc, tmp)
+        other_exports = tmp / "dub_jobs" / "other_job" / "exports"
+        other_exports.mkdir(parents=True)
+        try:
+            (job_dir / "exports").symlink_to(other_exports, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            pytest.skip("directory symlinks unavailable")
+
+        response = client.head(
+            f"/dub/preview-video/{job_id}",
+            params={"lang": "es", "preserve_bg": False},
+        )
+        assert response.status_code == 400
+
+    def test_preview_rejects_cache_symlink_to_another_job(self, app_client):
+        client, dc, _dx, tmp = app_client
+        job_id, job_dir = _seed_job_with_tracks(dc, tmp)
+        exports = job_dir / "exports"
+        exports.mkdir()
+        other_exports = tmp / "dub_jobs" / "other_job" / "exports"
+        other_exports.mkdir(parents=True)
+        other_preview = other_exports / "preview_v2_es_nobg.mp4"
+        other_preview.write_bytes(b"private job output")
+        try:
+            (exports / other_preview.name).symlink_to(other_preview)
+        except (OSError, NotImplementedError):
+            pytest.skip("file symlinks unavailable")
+
+        response = client.head(
+            f"/dub/preview-video/{job_id}",
+            params={"lang": "es", "preserve_bg": False},
+        )
+        assert response.status_code == 400
+
     def test_preview_is_faststart_and_reuses_immutable_cache(self, app_client):
         client, dc, dx, tmp = app_client
         job_id, job_dir = _seed_job_with_tracks(dc, tmp)

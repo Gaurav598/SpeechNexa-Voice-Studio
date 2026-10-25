@@ -121,8 +121,13 @@ async def generated_ogg_opus(audio_id: str):
                     status_code=503, detail="Ogg/Opus encoding timed out; try again later"
                 ) from exc
             except RuntimeError as exc:
-                logger.warning("Ogg/Opus encoding failed: %s", exc)
-                raise HTTPException(status_code=503, detail=str(exc)) from exc
+                # ffmpeg errors can contain the local source path. This GET
+                # endpoint must not return that diagnostic to a remote client.
+                logger.warning("Ogg/Opus encoding failed (%s)", type(exc).__name__)
+                raise HTTPException(
+                    status_code=503,
+                    detail="Ogg/Opus encoding failed; try again later",
+                ) from exc
             if len(encoded) <= _OGG_CACHE_LIMIT:
                 global _ogg_cache_bytes
                 with _ogg_state_lock:

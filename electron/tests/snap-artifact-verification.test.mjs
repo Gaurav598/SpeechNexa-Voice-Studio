@@ -22,7 +22,7 @@ plugs:
     allow-sandbox: false
 name: voicestudio
 version: 0.5.7
-title: VoiceStudio
+title: SpeechNexa
 summary: ${metadata.listing.shortDescription}
 description: ${metadata.listing.description}
 apps:
@@ -72,6 +72,7 @@ test('accepts canonical strict Snap metadata', () => {
 test('rejects weakened confinement, missing capabilities and broad removable access', () => {
   const expected = { ...metadata, version: '0.5.7' };
   assert.throws(() => verifySnapMetadata(snapYaml.replace('strict', 'classic'), expected));
+  assert.throws(() => verifySnapMetadata(snapYaml.replace('title: SpeechNexa', 'title: VoiceStudio'), expected));
   assert.throws(() => verifySnapMetadata(snapYaml.replace('allow-sandbox: false', 'allow-sandbox: true'), expected));
   assert.throws(() => verifySnapMetadata(snapYaml.replace('    allow-sandbox: false\n', ''), expected));
   assert.throws(() => verifySnapMetadata(snapYaml.replace('      - audio-record\n', ''), expected));
