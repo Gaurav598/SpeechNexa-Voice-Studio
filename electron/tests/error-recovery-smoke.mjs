@@ -29,7 +29,9 @@ try {
     router.routesById['/settings/support'].options.component = window.originalSupportComponent;
   });
   await fallback.getByRole('button', { name: 'Try again', exact: true }).click();
-  await page.getByRole('heading', { name: 'Donate to VoiceStudio Project', exact: true }).waitFor();
+  await page
+    .getByRole('heading', { level: 1, name: 'Ways to get in touch', exact: true })
+    .waitFor();
   assert.equal(await page.evaluate(() => window.recoverySentinel), 'renderer-still-running');
 
   await page.evaluate(async () => {
@@ -49,7 +51,9 @@ try {
     await router.navigate({ to: '/settings/support' });
   });
   await firstDynamicReload;
-  await page.getByRole('heading', { name: 'Donate to VoiceStudio Project', exact: true }).waitFor();
+  await page
+    .getByRole('heading', { level: 1, name: 'Ways to get in touch', exact: true })
+    .waitFor();
   assert.equal(
     await page.evaluate(() =>
       Object.keys(sessionStorage).some((key) => key.startsWith('voicestudio.moduleRetry:')),
@@ -92,7 +96,9 @@ try {
     router.routesById['/settings/support'].options.component = window.originalSupportComponent;
   });
   await dynamicFallback.getByRole('button', { name: 'Try again', exact: true }).click();
-  await page.getByRole('heading', { name: 'Donate to VoiceStudio Project', exact: true }).waitFor();
+  await page
+    .getByRole('heading', { level: 1, name: 'Ways to get in touch', exact: true })
+    .waitFor();
   assert.equal(
     await page.evaluate(() => window.recoverySentinel),
     'renderer-still-running-after-reload',

@@ -43,15 +43,18 @@ try {
     await page.setViewportSize(viewport);
     for (const route of routes) {
       const start = failures.length;
+      // `/settings` and `/pro` are compatibility entry points that redirect to
+      // the user's last settings page or the current support page.
+      const expectedHash = route === '/pro' ? '#/settings/support' : `#${route}`;
       await page.evaluate((path) => {
         window.location.hash = path;
       }, route);
       await page.waitForFunction(
-        (path) =>
+        ({ route: path, expected }) =>
           path === '/settings'
             ? window.location.hash.startsWith('#/settings/')
-            : window.location.hash === `#${path}`,
-        route,
+            : window.location.hash === expected,
+        { route, expected: expectedHash },
       );
       await page.waitForTimeout(120);
 

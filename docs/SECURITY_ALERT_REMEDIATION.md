@@ -1,6 +1,6 @@
 # Security alert remediation ledger
 
-Updated: 2026-10-25 (Asia/Kolkata). Repository: `Gaurav598/SpeechNexa-Voice-Studio`, branch `main`.
+Updated: 2026-11-08 (Asia/Kolkata). Repository: `Gaurav598/SpeechNexa-Voice-Studio`, branch `main`.
 
 ## Source of truth and scope
 
@@ -8,9 +8,14 @@ The signed-in GitHub code-scanning page showed **619 open, 0 closed** alerts on
 `main` before this repair, at `af645c2b822ebe0598143fa904f1f80ef83758b1`.
 After the first repair commit `00701ff349618390fdd5ff969f0d2afd21680651`
 completed both CodeQL analyses, the browser still showed **619 open, 0 closed**.
-Alert #38 was confirmed on that commit; no alert closure is claimed for the
-first batch. This ledger includes a follow-up correction whose own CodeQL
-rescan must be checked before claiming alert resolution.
+After follow-up commit `e39ffffef3606956bcef6b7058becbdb16ed2676`
+completed both CodeQL analyses, the signed-in `branch:main` dashboard showed
+**610 open, 15 closed**. Ten high and two medium alerts were in the closed
+filters; 16 high, 9 medium and 4 error-level alerts were open. The remaining
+581 open alerts are warning or note level; their exact split was not
+retrievable from the intermittently stalled browser. These are dashboard
+observations, not proof that every closure reflects a remediated vulnerability.
+No alert was manually dismissed.
 The prior recorded distribution was 521 note, 62 warning, 9 medium, 23 high,
 and 4 error. This is a baseline, not a verified post-fix count. The first two
 pages exposed 50 current alerts, including all 23 high findings, all 9 medium
@@ -21,9 +26,17 @@ for this session. A full current export with rule IDs, data-flow paths and
 individual dispositions is therefore **not yet available**. No findings have
 been dismissed or suppressed to change the counter.
 
+On 2026-11-08, a fresh alert export was attempted from the current checkout.
+The configured `gh` credential for `Gaurav598` is expired and the unauthenticated
+API request could not connect to `api.github.com`, so no newer GitHub alert count
+is verified here. The latest verified dashboard observation remains **610 open,
+15 closed**, with **16 high, 9 medium and 4 error-level** alerts open and **581
+warning/note** alerts whose split is unavailable. This task does not claim that
+the 610 remaining alerts are resolved.
+
 | Requested disposition | Current verified count | Evidence and limit |
 | --- | ---: | --- |
-| Confirmed vulnerability | 3 code paths | Predictable video slices, batch output cleanup and dub preview/background rendering accepted symlink redirection. Affected high alerts need a new CodeQL scan to determine which close. |
+| Confirmed vulnerability | 4 code paths | Predictable video slices, batch output cleanup, dub preview/background rendering and a separate retime scratch-file symlink accepted cross-job redirection. Regression tests passed; #31-38 no longer appear in the open-high list. Other related high alerts remain open. |
 | Likely vulnerability requiring validation | 0 established | Other alert source-to-sink paths still need inspection; absence of a count is not a safe classification. |
 | Functional correctness issue | 0 established | Pending remaining alert inventory. |
 | Maintainability or quality issue | 3 warning paths | Identical floating point comparison, duplicate regex character and dead sidecar return were repaired. Remaining note/warning inventory is pending. |
@@ -31,7 +44,7 @@ been dismissed or suppressed to change the counter.
 | Duplicate | 0 established | Multiple paths on one line cannot be called duplicates without flow evidence. |
 | Evidenced false positive | 0 established | Dynamic `__all__` exports are likely unrecognized by the scanner; #570's full flow and Chromium behavior still need confirmation. No alert was dismissed. |
 | Third-party dependency issue | 13 lockfile advisories | Seven Python findings in four packages and six Bun findings in `vite-plus`; these are separate from the CodeQL alert count. |
-| Not yet classified | Exact count unavailable | The full occurrence export and most detail pages are unavailable in the browser. This is a work queue, not a disposition. |
+| Not yet classified | Exact count unavailable | The full occurrence export and most detail pages are unavailable in the browser. At least the 581 open warning/note alerts need rule/path grouping. This is a work queue, not a disposition. |
 
 These rows mix code paths and alert counts where the scanner's full occurrence
 data is unavailable. They must not be added together. Replace them with exact,
@@ -75,7 +88,7 @@ remaining 50 warnings and 521 notes still need a full inventory.
 | #21-23 | Dub preview/background exports could follow a symlink into a sibling job. Exact job/export-directory checks now precede probes and writes. Confirmed defect fixed locally; CodeQL closure pending. |
 | #26-29 | Active model cache paths derive from known model IDs or validated catalogue IDs; the cache root is operator configuration. No remote traversal shown. Individual CodeQL flows remain unverified. |
 | #30 | `/tools/probe` intentionally reads an operator-selected path behind native true-loopback access. No remote file-probe path shown; individual flow still needs review. |
-| #31-38 | Predictable `.slices` path allowed a pre-existing symlink to redirect retime writes. Private temporary directory now used under the validated output parent. Alert #38 remained open on the first repair commit: its verified `py/path-injection` flow runs from the `lang` query parameter through `_safe_lang_or_400` and `preview_retimed_*` to `shutil.rmtree(slices_dir)`. A second cross-job scratch-file symlink regression failed before the follow-up guard (HTTP 200) and passed after the resolved scratch path was restricted to the exact job exports directory (HTTP 400). The full 75-test affected dub/smart-fit group passed with 8 skips. CodeQL closure remains unverified pending the follow-up rescan. |
+| #31-38 | Predictable `.slices` path allowed a pre-existing symlink to redirect retime writes. Private temporary directory now used under the validated output parent. Alert #38 remained open on the first repair commit: its verified `py/path-injection` flow runs from the `lang` query parameter through `_safe_lang_or_400` and `preview_retimed_*` to `shutil.rmtree(slices_dir)`. A second cross-job scratch-file symlink regression failed before the follow-up guard (HTTP 200) and passed after the resolved scratch path was restricted to the exact job exports directory (HTTP 400). The full 75-test affected dub/smart-fit group passed with 8 skips. #31-38 are absent from the final open-high list; individual closure details still need a full export. |
 | #39 | Dub streaming generator catches body exceptions and emits a fixed failure code; cleanup outside that catch remains to inspect against the actual CodeQL flow. Unverified. |
 | #40 | Wildcard listener is an explicit LAN-share action. Non-loopback API requests require a six-digit PIN and the middleware limits failed guesses to 10 per client per minute. Intentional exposure with mitigation; retain for periodic review. |
 | #570 | `img src` receives a browser-created blob URL, not a backend path or filename. HTML bytes disguised as a PNG filename do not create a script element in the renderer test; the backend now rejects those bytes. Likely false positive, pending full CodeQL flow and Chromium image-decoding validation. |
@@ -83,10 +96,12 @@ remaining 50 warnings and 521 notes still need a full inventory.
 | #572, #577 | Same command pattern in a test-only runtime smoke. Not a shipped entry point; retain test coverage. |
 | #574-575 | Repair bridge previously followed HTTP redirects while carrying its capability header. It now uses manual redirect handling. Confirmed medium-risk behavior fixed locally; CodeQL closure pending. |
 | #573 | OpenCode repair prompt contains diagnostics and was written to a shared temp path with default permissions. It now uses exclusive creation and owner-only mode, verified on POSIX. CodeQL closure pending. |
+| #620 | New high `py/path-injection` alert on `os.path.islink(entry)` inside `_batch_output_dir`. The verified eight-step flow starts at retry-route `job_id`, passes the strict `[A-Za-z0-9_-]{1,64}` allowlist, and ends at the protective symlink check before cleanup. The flagged sink only checks a validated path; it does not delete or read file contents. Cross-job symlink regressions pass. Likely scanner limitation, left open for independent rule review. |
+| #624-625 | New medium alerts reissued on the hardened OpenCode prompt writer and repair MCP request. #624's destination uses exclusive owner-only creation; #625's local bridge refuses redirects carrying its session capability. The detailed new source-to-sink paths have not been fully exported. Both remain open for review. |
 | #163-166 | Dynamic PEP 562 `__getattr__` supplies the named exports. Existing lazy-import and invariant tests exercise them; likely scanner limitation, not a broken runtime import. Do not dismiss until rule details are available. |
 | #179, #186, #47 | Duplicate regex character, self-comparison of floating values and unreachable sidecar return were repaired with focused tests. Warning-level closure pending. |
 
-## Locally verified changes; GitHub rescan pending
+## Verified changes and rescan observations
 
 - The Snap metadata fixture uses the current public title, SpeechNexa. The
   package configuration already emits that title while keeping the internal
@@ -132,9 +147,35 @@ last source edit. The full Electron contract passed with 1,687 renderer tests
 (2 skipped), 2,902 shared tests, typechecking, locale coverage, Electron and
 web builds, and packaging contracts. Snap verification passed 4 tests with 2
 skipped for missing local squashfs-tools; launcher/packaging tests passed 8.
-Migration safety and 20 offline tests passed. These are local repairs until
-committed, pushed and analyzed by GitHub. A successful CodeQL job alone does
-not close an alert.
+Migration safety and 20 offline tests passed. These repairs were committed
+and analyzed by GitHub on `main`. A successful CodeQL job alone does not close
+an alert; the dashboard observations above are tracked separately.
+
+## 2026-11-08 local continuation checks
+
+- All **37/37 renderer workflow smokes** passed against the CI-style Vite server
+  with an offline fake backend. The five previously failing smokes now exercise
+  the current SpeechNexa brand, the `/pro` compatibility redirect, the setup
+  gate, the current support/contact route and repository-owned security link.
+  No smoke was skipped, deleted or weakened.
+- The full Electron contract passed locally with
+  `NODE_OPTIONS=--no-experimental-webstorage` on this Node 26 host: 286 test
+  files, **1,687 tests passed and 2 skipped**; 325 shared test files,
+  **2,902 tests passed**; typecheck, 21 locale checks, Electron and web builds,
+  and the packaging contract passed. Snap checks passed 12 with 2 skipped
+  because `squashfs-tools` is not installed.
+- Migration boundary and model-license checks passed. Gitleaks scanned 11
+  reachable `main` commits with **0 leaks**. The local `bun audit` request was
+  unavailable (`ConnectionRefused`); no current dependency advisory result is
+  claimed from that run. The host has no `uv`/pytest environment, so the Python
+  suites were not rerun in this shell; prior CI-backed Python results remain
+  historical evidence, not a new local pass.
+- Remaining genuine or operationally relevant risks are the seven recorded
+  Python lock advisories, six development-only Bun advisories, conditional
+  unsafe deserialization in CLI/evaluation paths, and the opt-in plaintext LAN
+  listener. The reviewed active-path symlink, error-disclosure, repair-bridge
+  redirect and private-prompt defects remain locally fixed but require the next
+  GitHub CodeQL scan to confirm closures.
 
 ## Dependency exposure
 
@@ -164,5 +205,5 @@ The exact default-lock IDs reproduced in this session are
    archive cases; add fail-before/pass-after tests for confirmed defects.
 3. Group note and warning alerts by rule/module. Fix real quality defects and
    document evidenced informational or unreachable groups individually.
-4. Verify final GitHub workflows and the follow-up CodeQL alert status, then
-   record the exact final open count and remaining risks here.
+4. Verify final Main CI, obtain the complete current alert export, and assign
+   rule/path dispositions for the 610 remaining open alerts.
