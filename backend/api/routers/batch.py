@@ -74,9 +74,8 @@ def _batch_output_dir(job_id: str) -> str:
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", job_id or ""):
         raise HTTPException(status_code=400, detail="Invalid batch job path")
     batch_root = os.path.realpath(os.path.join(DATA_DIR, "batch"))
-    entry = os.path.join(batch_root, job_id)
-    output_dir = os.path.realpath(entry)
-    if os.path.islink(entry) or os.path.dirname(output_dir) != batch_root:
+    output_dir = os.path.realpath(contained_join(batch_root, job_id))
+    if os.path.islink(output_dir) or os.path.dirname(output_dir) != batch_root:
         raise HTTPException(status_code=400, detail="Invalid batch job path")
     return output_dir
 
